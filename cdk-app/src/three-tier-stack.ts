@@ -52,6 +52,7 @@ export class ThreeTierStack extends cdk.Stack {
       environment: {
         BUCKET_NAME: bucket.bucketName,
       },
+      portMappings: [{ containerPort: 80 }],
     });
 
     const service = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "AppService", {
@@ -61,7 +62,6 @@ export class ThreeTierStack extends cdk.Stack {
       desiredCount: 2,
       listenerPort: 80,
       assignPublicIp: false,
-      publicLoadBalancerSecurityGroups: [],
       memoryLimitMiB: 1024,
       cpu: 512,
     });
