@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import { ThreeTierStack } from "./three-tier-stack";
+import { ThreeTierStack } from "../lib/stack";
 
 const app = new cdk.App();
 new ThreeTierStack(app, "ThreeTierStack", {

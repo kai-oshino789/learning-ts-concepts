@@ -7,12 +7,12 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "Node",
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "./dist",
     "types": ["node"],
     "ignoreDeprecations": "6.0",
     "sourceMap": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["bin/**/*.ts", "lib/**/*.ts", "src/**/*.ts"]
 }
