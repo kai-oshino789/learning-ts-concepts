@@ -9,9 +9,9 @@
     "moduleResolution": "node",
     "rootDir": ".",
     "outDir": "./dist",
-    "types": ["node"],
+    "types": ["node", "jest"],
     "sourceMap": true,
     "skipLibCheck": true
   },
-  "include": ["bin/**/*.ts", "lib/**/*.ts"]
+  "include": ["bin/**/*.ts", "lib/**/*.ts", "test/**/*.ts"]
 }

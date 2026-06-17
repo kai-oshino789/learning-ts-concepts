@@ -47,10 +47,26 @@ jobs:
           fi
         shell: bash
 
-      # 3. Docker イメージのビルド検証 (プッシュはしない)
+      # 2.5. Dockerfile Linter (Hadolint)
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./app/Dockerfile
+
+      # 3. Docker  イメージのビルド検証 (プッシュはしない)
       - name: Build Docker image (Verification Only)
         run: |
           docker build -t app-image:${{ github.sha }} ./app
+
+      # 3.5. Container Image Vulnerability Scan (Trivy)
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'app-image:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
 
       # 4. Node.js のセットアップ (CDK実行用)
       - name: Set up Node.js
@@ -60,12 +76,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './cdk-app/package-lock.json'
 
-      # 5. CDK アプリの依存関係インストールとビルド
-      - name: Install dependencies & Build
+      # 5. CDK アプリの依存関係インストール、ビルド & テスト
+      - name: Install dependencies, Build & Test
         run: |
           cd cdk-app
           npm ci
           npm run build
+          npm test
 
       # 6. AWS CDK によるシンセサイズ確認 (デプロイはしない)
       - name: Synthesize CDK Stack
