@@ -139,8 +139,8 @@
           <!-- ALB Icon -->
           <circle cx="28" cy="38" r="14" fill="#f59e0b" opacity="0.2" />
           <path d="M 20 38 L 25 38 M 31 38 L 36 38 M 28 26 C 28 26, 23 32, 28 38 C 33 32, 28 26, 28 26 Z M 28 38 C 28 38, 23 44, 28 50 C 33 44, 28 38, 28 38 Z" fill="#f59e0b" />
-          <text x="52" y="36" class="card-title">ALB (Security Group)</text>
-          <text x="52" y="52" class="card-subtitle">albSecurityGroup</text>
+          <text x="52" y="36" class="card-title">Application Load Balancer</text>
+          <text x="52" y="52" class="card-subtitle">ApplicationLoadBalancer</text>
           <text x="52" y="64" font-size="9" fill="#b45309" font-weight="600">Port 80 / 443 Inbound</text>
         </g>
       </g>

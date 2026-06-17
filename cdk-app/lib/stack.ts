@@ -45,5 +45,33 @@ export class ThreeTierStack extends cdk.Stack {
       // Allow ECS tasks to connect to the DB
       db.cluster.connections.allowDefaultPortFrom(compute.service);
     }
+
+    // Create Application Load Balancer
+    const elbv2 = cdk.aws_elasticloadbalancingv2;
+    const alb = new elbv2.ApplicationLoadBalancer(this, "ApplicationLoadBalancer", {
+      vpc: vpcConstruct.vpc,
+      internetFacing: true,
+      securityGroup: vpcConstruct.albSecurityGroup,
+      vpcSubnets: { subnetType: cdk.aws_ec2.SubnetType.PUBLIC },
+    });
+
+    // Add HTTP Listener on Port 80
+    const listener = alb.addListener("HttpListener", {
+      port: 80,
+      open: true,
+    });
+
+    // Add ECS Service as target
+    if (compute.service) {
+      listener.addTargets("EcsTarget", {
+        port: 3000,
+        protocol: elbv2.ApplicationProtocol.HTTP,
+        targets: [compute.service],
+        healthCheck: {
+          path: "/",
+          interval: cdk.Duration.seconds(30),
+        },
+      });
+    }
   }
 }
