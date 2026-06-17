@@ -42,6 +42,6 @@ npx cdk deploy ThreeTierStack-dev   # 例: dev をデプロイ
 
 - ALB: 80 / 443 をリスン（外部）
 - ALB → ECS: 3000 (コンテナのアプリケーションポートの例)
-- ECS → Aurora: 5432 (PostgreSQL の例。MySQL の場合は 3306 に変更してください)
+- ECS → Aurora: 3306 (MySQL。Connections API を用いて自動連携)
 
-作成日: 2026-06-16
+作成日: 2026-06-17

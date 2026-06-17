@@ -43,8 +43,8 @@
   <rect x="40" y="360" width="260" height="100" class="box" />
   <text x="170" y="390" class="title">Security Groups</text>
   <text x="170" y="412" class="label">- ALB -> ECS (port 3000)</text>
-  <text x="170" y="432" class="label">- ECS -> Aurora (5432)</text>
+  <text x="170" y="432" class="label">- ECS -> Aurora (3306)</text>
 
   <!-- Footer -->
-  <text x="20" y="470" class="label">Generated: 2026-06-16</text>
+  <text x="20" y="470" class="label">Generated: 2026-06-17</text>
 </svg>
