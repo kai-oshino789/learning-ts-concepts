@@ -42,10 +42,10 @@ npx cdk deploy ThreeTierStack-dev   # 例: dev をデプロイ
 
 ## ネットワーク / ポート / セキュリティ
 
-- エッジ (CloudFront): HTTPS :443 で受け付け、ALB (HTTP :80) へ転送
-- セキュリティ (WAF): AWS WAFv2 (WebACL) でALBを外部攻撃（Common Rule Set）から保護
+- エッジ (CloudFront): HTTPS :443 で受け付け、ALB (HTTP :80) へ転送。カスタムヘッダー（`X-Origin-Verify`）を付与してオリジン（ALB）へリクエストを送信
+- セキュリティ (WAF & カスタムヘッダー): AWS WAFv2 (WebACL) で外部攻撃から保護。また、CloudFront 以外からの直接アクセス（ALBパブリックDNSへの直打ちなど）は ALB リスナー側で `403 Forbidden` を返しシャットアウトします
 - ALB: 80番ポートでリスン
-- ALB → ECS: 3000 (コンテナのアプリケーションポート)
+- ALB → ECS: 80 (コンテナのアプリケーションポート。amazon-ecs-sampleの既定ポート)
 - ECS → Aurora: 3306 (MySQL。Connections API を用いて自動連携)
 
 作成日: 2026-06-17

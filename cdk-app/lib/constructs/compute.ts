@@ -44,7 +44,7 @@ export class ComputeConstruct extends Construct {
         DB_SECRET_ARN: props.dbSecretArn ?? "",
       },
     });
-    container.addPortMappings({ containerPort: 3000 });
+    container.addPortMappings({ containerPort: 80 });
 
     const sg = props.ecsSecurityGroup ?? new ec2.SecurityGroup(this, "EcsSecurityGroup", { vpc: props.vpc });
 

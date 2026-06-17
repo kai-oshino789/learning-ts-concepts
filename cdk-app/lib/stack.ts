@@ -13,6 +13,8 @@ export interface ThreeTierStackProps extends cdk.StackProps {
   envName?: string;
   /** Optional domain name for Route 53 */
   domainName?: string;
+  /** Optional custom VPC CIDR block */
+  vpcCidr?: string;
 }
 
 export class ThreeTierStack extends cdk.Stack {
@@ -22,8 +24,9 @@ export class ThreeTierStack extends cdk.Stack {
     const instanceSize = props?.instanceSize;
     const dbCapacity = props?.dbCapacity;
     const envName = props?.envName;
+    const vpcCidr = props?.vpcCidr;
 
-    const vpcConstruct = new VpcConstruct(this, "VpcConstruct", { envName });
+    const vpcConstruct = new VpcConstruct(this, "VpcConstruct", { envName, vpcCidr });
 
     const db = new DatabaseConstruct(this, "DatabaseConstruct", {
       dbCapacity,
@@ -57,22 +60,33 @@ export class ThreeTierStack extends cdk.Stack {
       vpcSubnets: { subnetType: cdk.aws_ec2.SubnetType.PUBLIC },
     });
 
-    // Add HTTP Listener on Port 80
+    const customHeaderName = "X-Origin-Verify";
+    const customHeaderValue = "secret-token-" + this.stackName;
+
+    // Add HTTP Listener on Port 80 (Deny direct access by default)
     const listener = alb.addListener("HttpListener", {
       port: 80,
       open: true,
+      defaultAction: elbv2.ListenerAction.fixedResponse(403, {
+        contentType: "text/plain",
+        messageBody: "Access Denied: Direct ALB access is not allowed.",
+      }),
     });
 
-    // Add ECS Service as target
+    // Add ECS Service as target only if X-Origin-Verify header matches
     if (compute.service) {
       listener.addTargets("EcsTarget", {
-        port: 3000,
+        port: 80,
         protocol: elbv2.ApplicationProtocol.HTTP,
         targets: [compute.service],
         healthCheck: {
           path: "/",
           interval: cdk.Duration.seconds(30),
         },
+        conditions: [
+          elbv2.ListenerCondition.httpHeader(customHeaderName, [customHeaderValue]),
+        ],
+        priority: 1,
       });
     }
 
@@ -119,6 +133,9 @@ export class ThreeTierStack extends cdk.Stack {
       defaultBehavior: {
         origin: new origins.LoadBalancerV2Origin(alb, {
           protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+          customHeaders: {
+            [customHeaderName]: customHeaderValue,
+          },
         }),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,

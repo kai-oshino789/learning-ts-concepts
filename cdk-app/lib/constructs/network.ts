@@ -5,6 +5,7 @@ const ec2 = cdk.aws_ec2;
 
 export interface VpcConstructProps {
   envName?: string;
+  vpcCidr?: string;
 }
 
 export class VpcConstruct extends Construct {
@@ -16,8 +17,11 @@ export class VpcConstruct extends Construct {
   constructor(scope: Construct, id: string, props?: VpcConstructProps) {
     super(scope, id);
 
+    const vpcCidr = props?.vpcCidr ?? "10.0.0.0/16";
+
     // 3層構造のVPC: Public (ALB) → Private (Fargate) → Isolated (DB)
     this.vpc = new ec2.Vpc(this, "Vpc", {
+      ipAddresses: ec2.IpAddresses.cidr(vpcCidr),
       maxAzs: 3,
       natGateways: 1,
       subnetConfiguration: [
@@ -63,10 +67,10 @@ export class VpcConstruct extends Construct {
       description: "Security group for ECS tasks",
     });
 
-    // ALB → ECS の通信を許可 (ポート 3000 を想定、必要に応じて変更)
+    // ALB → ECS の通信を許可 (ポート 80 を想定)
     this.ecsSecurityGroup.addIngressRule(
       this.albSecurityGroup,
-      ec2.Port.tcp(3000),
+      ec2.Port.tcp(80),
       "Allow inbound from ALB"
     );
 
