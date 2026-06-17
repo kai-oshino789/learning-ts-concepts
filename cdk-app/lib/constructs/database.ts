@@ -12,8 +12,8 @@ export interface DatabaseConstructProps {
 }
 
 export class DatabaseConstruct extends Construct {
-  public readonly cluster?: cdk.aws_rds.ServerlessCluster;
-  public readonly secret?: cdk.aws_secretsmanager.ISecret;
+  public readonly cluster: cdk.aws_rds.DatabaseCluster;
+  public readonly secret: cdk.aws_secretsmanager.ISecret;
 
   constructor(scope: Construct, id: string, props: DatabaseConstructProps) {
     super(scope, id);
@@ -29,15 +29,16 @@ export class DatabaseConstruct extends Construct {
       },
     });
 
-    this.cluster = new rds.ServerlessCluster(this, "AuroraServerless", {
-      engine: rds.DatabaseClusterEngine.AURORA_MYSQL,
+    this.cluster = new rds.DatabaseCluster(this, "AuroraServerlessV2", {
+      engine: rds.DatabaseClusterEngine.auroraMysql({
+        version: rds.AuroraMysqlEngineVersion.VER_3_05_2,
+      }),
       credentials: rds.Credentials.fromSecret(this.secret),
       vpc: props.vpc,
-      scaling: {
-        autoPause: cdk.Duration.minutes(10),
-        minCapacity: dbCapacity,
-        maxCapacity: dbCapacity,
-      },
+      vpcSubnets: { subnetType: cdk.aws_ec2.SubnetType.PRIVATE_ISOLATED },
+      writer: rds.ClusterInstance.serverlessV2("writer"),
+      serverlessV2MinCapacity: dbCapacity,
+      serverlessV2MaxCapacity: dbCapacity * 2,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       securityGroups: props.dbSecurityGroup ? [props.dbSecurityGroup] : undefined,
     });

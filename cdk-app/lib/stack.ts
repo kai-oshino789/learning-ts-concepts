@@ -40,8 +40,10 @@ export class ThreeTierStack extends cdk.Stack {
     });
 
     // Allow DB secret to be read by ECS task role if needed
-    if (db.secret && compute.service) {
+    if (compute.service) {
       db.secret.grantRead(compute.service.taskDefinition.taskRole);
+      // Allow ECS tasks to connect to the DB
+      db.cluster.connections.allowDefaultPortFrom(compute.service);
     }
   }
 }

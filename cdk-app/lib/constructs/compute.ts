@@ -44,7 +44,7 @@ export class ComputeConstruct extends Construct {
         DB_SECRET_ARN: props.dbSecretArn ?? "",
       },
     });
-    container.addPortMappings({ containerPort: 80 });
+    container.addPortMappings({ containerPort: 3000 });
 
     const sg = props.ecsSecurityGroup ?? new ec2.SecurityGroup(this, "EcsSecurityGroup", { vpc: props.vpc });
 
@@ -57,11 +57,6 @@ export class ComputeConstruct extends Construct {
       circuitBreaker: { rollback: true },
       minHealthyPercent: 100,
     });
-
-    if (props.dbSecurityGroup) {
-      // allow the ECS tasks to connect to the DB on default MySQL port
-      props.dbSecurityGroup.addIngressRule(sg, ec2.Port.tcp(3306), "Allow ECS to connect to DB");
-    }
 
     this.service = service;
   }

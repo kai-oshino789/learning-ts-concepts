@@ -76,11 +76,5 @@ export class VpcConstruct extends Construct {
       description: "Security group for Aurora DB",
     });
 
-    // ECS → DB の通信を許可 (ポート 5432 を想定、DB種に応じて変更)
-    this.dbSecurityGroup.addIngressRule(
-      this.ecsSecurityGroup,
-      ec2.Port.tcp(5432),
-      "Allow inbound from ECS"
-    );
   }
 }
