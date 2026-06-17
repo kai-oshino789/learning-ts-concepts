@@ -1,17 +1,19 @@
 # learning-ts-concepts
 
-このリポジトリは、TypeScript と AWS CDK を用いて学習用の三層アーキテクチャ（ECS on Fargate + Aurora Serverless v2）を構築するサンプルです。
+このリポジトリは、TypeScript と AWS CDK を用いて学習用のセキュアな三層アーキテクチャ（CloudFront + WAF + ALB + ECS on Fargate + Aurora Serverless v2）を構築するサンプルです。
 
 ## 構成（概要）
 
-- VPC
+- エッジ/DNS層: Route 53 (DNS) + CloudFront (CDN)
+- セキュリティ層: AWS WAF (Web ACL) によるALB保護
+- ロードバランサー層: Application Load Balancer (ALB)
 - Web/App 層: ECS on Fargate
 - Data 層: Amazon Aurora (Serverless v2)
 - 各環境: `dev` / `stg` / `prod` の 3 スタック
 
 ## アーキテクチャ図
 
-![Architecture](architecture.svg?v=2)
+![Architecture](architecture.svg?v=3)
 
 ## 主要ファイル
 
@@ -38,10 +40,12 @@ npx cdk deploy ThreeTierStack-dev   # 例: dev をデプロイ
 
 ---
 
-## ネットワーク / ポート
+## ネットワーク / ポート / セキュリティ
 
-- ALB: 80 / 443 をリスン（外部）
-- ALB → ECS: 3000 (コンテナのアプリケーションポートの例)
+- エッジ (CloudFront): HTTPS :443 で受け付け、ALB (HTTP :80) へ転送
+- セキュリティ (WAF): AWS WAFv2 (WebACL) でALBを外部攻撃（Common Rule Set）から保護
+- ALB: 80番ポートでリスン
+- ALB → ECS: 3000 (コンテナのアプリケーションポート)
 - ECS → Aurora: 3306 (MySQL。Connections API を用いて自動連携)
 
 作成日: 2026-06-17
