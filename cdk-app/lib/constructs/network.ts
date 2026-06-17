@@ -19,11 +19,15 @@ export class VpcConstruct extends Construct {
 
     const vpcCidr = props?.vpcCidr ?? "10.0.0.0/16";
 
+    // コンテキストから natGateways の数を取得（指定がない場合はデフォルト 1。コスト最適化のため 0 を指定可能にする）
+    const natGatewaysContext = this.node.tryGetContext("natGateways");
+    const natGateways = natGatewaysContext !== undefined ? Number(natGatewaysContext) : 1;
+
     // 3層構造のVPC: Public (ALB) → Private (Fargate) → Isolated (DB)
     this.vpc = new ec2.Vpc(this, "Vpc", {
       ipAddresses: ec2.IpAddresses.cidr(vpcCidr),
       maxAzs: 3,
-      natGateways: 1,
+      natGateways: natGateways,
       subnetConfiguration: [
         {
           name: "Public",

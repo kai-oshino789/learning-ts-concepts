@@ -72,12 +72,19 @@ export class ComputeConstruct extends Construct {
 
     const sg = props.ecsSecurityGroup ?? new ec2.SecurityGroup(this, "EcsSecurityGroup", { vpc: props.vpc });
 
+    // natGatewaysが0の場合はパブリックサブネット配置＆パブリックIP付与を有効化（コスト最適化）
+    const natGatewaysContext = this.node.tryGetContext("natGateways");
+    const natGateways = natGatewaysContext !== undefined ? Number(natGatewaysContext) : 1;
+    const isPublicSubnet = natGateways === 0;
+
     const service = new ecs.FargateService(this, "FargateService", {
       cluster,
       taskDefinition: taskDef,
-      assignPublicIp: false,
+      assignPublicIp: isPublicSubnet,
       securityGroups: [sg],
-      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+      vpcSubnets: isPublicSubnet
+        ? { subnetType: ec2.SubnetType.PUBLIC }
+        : { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       circuitBreaker: { rollback: true },
       minHealthyPercent: 100,
     });

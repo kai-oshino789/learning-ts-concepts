@@ -21,31 +21,30 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. ブランチに基づくデプロイ環境の動的決定（本番・開発環境の分離）
-      # AWSアカウントIDや地域はリポジトリのSecretsまたはVariablesに登録することを想定しています
+      # 2. ブランチに基づくデプロイ環境の動的決定（本番・ステージング・開発環境の分離）
+      # AWSアカウントIDやロールARNはSecretsから安全に取得します
       - name: Set Environment Variables
         run: |
-          AWS_ACCOUNT_ID="${{ secrets.AWS_ACCOUNT_ID }}"
+          echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
           AWS_REGION="${{ secrets.AWS_REGION || 'ap-northeast-1' }}"
+          echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
           
           if [ "${{ github.ref_name }}" = "main" ]; then
             echo "ENV_NAME=prod" >> $GITHUB_ENV
-            echo "AWS_ROLE_ARN=arn:aws:iam::$AWS_ACCOUNT_ID:role/github-actions-deploy-role-prod" >> $GITHUB_ENV
+            echo "AWS_ROLE_ARN=${{ secrets.ROLE_ARN_PROD }}" >> $GITHUB_ENV
             echo "ECR_REPO=app-repo-prod" >> $GITHUB_ENV
             echo "CDK_STACK=ThreeTierStack-prod" >> $GITHUB_ENV
           elif [[ "${{ github.ref_name }}" =~ ^release/ ]]; then
             echo "ENV_NAME=stg" >> $GITHUB_ENV
-            echo "AWS_ROLE_ARN=arn:aws:iam::$AWS_ACCOUNT_ID:role/github-actions-deploy-role-stg" >> $GITHUB_ENV
+            echo "AWS_ROLE_ARN=${{ secrets.ROLE_ARN_STG }}" >> $GITHUB_ENV
             echo "ECR_REPO=app-repo-stg" >> $GITHUB_ENV
             echo "CDK_STACK=ThreeTierStack-stg" >> $GITHUB_ENV
           else
             echo "ENV_NAME=dev" >> $GITHUB_ENV
-            # 開発ブランチ(developなど)はdev環境スタックへデプロイします
-            echo "AWS_ROLE_ARN=arn:aws:iam::$AWS_ACCOUNT_ID:role/github-actions-deploy-role-dev" >> $GITHUB_ENV
+            echo "AWS_ROLE_ARN=${{ secrets.ROLE_ARN_DEV }}" >> $GITHUB_ENV
             echo "ECR_REPO=app-repo-dev" >> $GITHUB_ENV
             echo "CDK_STACK=ThreeTierStack-dev" >> $GITHUB_ENV
           fi
-          echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
         shell: bash
 
       # 3. AWS OIDC 認証
@@ -91,8 +90,12 @@ jobs:
           npm run build
 
       # 8. AWS CDK デプロイによる Fargate サービスの更新
-      # imageTag コンテキストパラメータとしてコミットSHAを渡し、ECSのタスク定義を更新します
+      # imageTag コンテキストパラメータとしてコミットSHAを渡し、ECSのタスク定義を更新します。
+      # また、コスト最適化のために natGateways=0 をコンテキスト値として引き渡します。
       - name: Deploy CDK Stack
         run: |
           cd cdk-app
-          npx cdk deploy ${{ env.CDK_STACK }} --require-approval never -c imageTag=${{ github.sha }}
+          npx cdk deploy ${{ env.CDK_STACK }} \
+            --require-approval never \
+            -c imageTag=${{ github.sha }} \
+            -c natGateways=0
