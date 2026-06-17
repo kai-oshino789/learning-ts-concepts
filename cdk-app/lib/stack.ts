@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import { VpcConstruct } from "./constructs/network";
 import { DatabaseConstruct } from "./constructs/database";
 import { ComputeConstruct } from "./constructs/compute";
+import { GithubActionsRoleConstruct } from "./constructs/github-role";
 
 export interface ThreeTierStackProps extends cdk.StackProps {
   /** EC2 instance size or similar identifier used by the application layer */
@@ -15,6 +16,10 @@ export interface ThreeTierStackProps extends cdk.StackProps {
   domainName?: string;
   /** Optional custom VPC CIDR block */
   vpcCidr?: string;
+  /** GitHub Organization or Username */
+  githubOrg?: string;
+  /** GitHub Repository name */
+  githubRepo?: string;
 }
 
 export class ThreeTierStack extends cdk.Stack {
@@ -25,6 +30,8 @@ export class ThreeTierStack extends cdk.Stack {
     const dbCapacity = props?.dbCapacity;
     const envName = props?.envName;
     const vpcCidr = props?.vpcCidr;
+    const githubOrg = props?.githubOrg ?? "shadow-architect-dev";
+    const githubRepo = props?.githubRepo ?? "ecs-fargate-ci-cd-platform";
 
     const vpcConstruct = new VpcConstruct(this, "VpcConstruct", { envName, vpcCidr });
 
@@ -42,6 +49,18 @@ export class ThreeTierStack extends cdk.Stack {
       ecsSecurityGroup: vpcConstruct.ecsSecurityGroup,
       dbSecurityGroup: vpcConstruct.dbSecurityGroup,
       dbSecretArn: db.secret?.secretArn,
+    });
+
+    // GitHub Actions用 IAM ロールの作成（本番環境用と開発環境用でブランチを分離）
+    // 開発/ステージング環境は develop ブランチ、本番環境は main ブランチからのデプロイのみを許可
+    const allowedBranch = envName === "prod" ? "main" : "develop";
+
+    new GithubActionsRoleConstruct(this, "GithubActionsRole", {
+      envName: envName ?? "dev",
+      githubOrg,
+      githubRepo,
+      allowedBranch,
+      ecrRepository: compute.repository,
     });
 
     // Allow DB secret to be read by ECS task role if needed

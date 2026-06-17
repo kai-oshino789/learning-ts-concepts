@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 
 const ecs = cdk.aws_ecs;
 const ec2 = cdk.aws_ec2;
+const ecr = cdk.aws_ecr;
 
 export interface ComputeConstructProps {
   instanceSize?: string;
@@ -16,6 +17,7 @@ export interface ComputeConstructProps {
 export class ComputeConstruct extends Construct {
   public readonly cluster: cdk.aws_ecs.ICluster;
   public readonly service?: cdk.aws_ecs.FargateService;
+  public readonly repository: cdk.aws_ecr.Repository;
 
   constructor(scope: Construct, id: string, props: ComputeConstructProps) {
     super(scope, id);
@@ -28,6 +30,19 @@ export class ComputeConstruct extends Construct {
     };
     const spec = mapping[instanceSize] ?? { cpu: 512, memoryMiB: 1024 };
 
+    // ECRリポジトリの定義
+    // 開発用/本番用の環境名を含めたリポジトリを作成
+    this.repository = new ecr.Repository(this, "AppRepository", {
+      repositoryName: `app-repo-${props.envName ?? "dev"}`,
+      // 開発時は DESTROY、本番（prod）時は意図しないデータ消失を防ぐため RETAIN とし、
+      // 開発用はスタック削除時に自動でイメージを含め削除する
+      removalPolicy: props.envName === "prod" 
+        ? cdk.RemovalPolicy.RETAIN 
+        : cdk.RemovalPolicy.DESTROY,
+      emptyOnDelete: props.envName !== "prod",
+      imageScanOnPush: true, // セキュリティ向上のためイメージスキャンを有効化
+    });
+
     const cluster = new ecs.Cluster(this, "EcsCluster", { vpc: props.vpc });
     this.cluster = cluster;
 
@@ -36,8 +51,17 @@ export class ComputeConstruct extends Construct {
       memoryLimitMiB: spec.memoryMiB,
     });
 
+    // CDKコンテキストパラメータからイメージタグを取得する
+    const imageTag = this.node.tryGetContext("imageTag");
+    
+    // imageTagコンテキストパラメータが存在する場合はECRからイメージを取得し、
+    // 存在しない（初回デプロイ等）場合はサンプルイメージを使用する
+    const containerImage = imageTag
+      ? ecs.ContainerImage.fromEcrRepository(this.repository, imageTag)
+      : ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample");
+
     const container = taskDef.addContainer("AppContainer", {
-      image: ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample"),
+      image: containerImage,
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "app" }),
       environment: {
         ENV: props.envName ?? "dev",
@@ -61,3 +85,4 @@ export class ComputeConstruct extends Construct {
     this.service = service;
   }
 }
+
