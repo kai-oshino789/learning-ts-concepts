@@ -24,7 +24,7 @@ export class ComputeConstruct extends Construct {
 
     const instanceSize = props.instanceSize ?? "t3.small";
     const mapping: Record<string, { cpu: number; memoryMiB: number }> = {
-      "t3.small": { cpu: 256, memoryMiB: 512 },
+      "t3.small": { cpu: 512, memoryMiB: 1024 }, // Datadog Agent 導入に伴い引き上げ
       "t3.medium": { cpu: 512, memoryMiB: 1024 },
       "t3.large": { cpu: 1024, memoryMiB: 2048 },
     };
@@ -51,6 +51,12 @@ export class ComputeConstruct extends Construct {
       memoryLimitMiB: spec.memoryMiB,
     });
 
+    // Datadog API キー用のシークレット（ダミーのARNを参照）
+    // ※ 実際にデプロイする際はSecrets Managerに実キーを登録し、そのARNに差し替えてください。
+    const ddApiKeySecret = cdk.aws_secretsmanager.Secret.fromSecretAttributes(this, "DdApiKey", {
+      secretCompleteArn: `arn:aws:secretsmanager:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:secret:datadog-api-key-dummy-xxxxxx`,
+    });
+
     // CDKコンテキストパラメータからイメージタグを取得する
     const imageTag = this.node.tryGetContext("imageTag");
     
@@ -66,9 +72,37 @@ export class ComputeConstruct extends Construct {
       environment: {
         ENV: props.envName ?? "dev",
         DB_SECRET_ARN: props.dbSecretArn ?? "",
+        DD_AGENT_HOST: "localhost",
+        DD_TRACE_AGENT_PORT: "8126",
       },
     });
     container.addPortMappings({ containerPort: 80 });
+
+    const ddAgentContainer = taskDef.addContainer("DatadogAgent", {
+      image: ecs.ContainerImage.fromRegistry("gcr.io/datadoghq/agent:latest"),
+      logging: ecs.LogDrivers.awsLogs({ streamPrefix: "datadog-agent" }),
+      environment: {
+        ECS_FARGATE: "true",
+        DD_SITE: "ap1.datadoghq.com",
+        DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true",
+        DD_APM_ENABLED: "true",
+        DD_APM_NON_LOCAL_TRAFFIC: "true",
+      },
+      secrets: {
+        DD_API_KEY: ecs.Secret.fromSecretsManager(ddApiKeySecret),
+      },
+    });
+
+    ddAgentContainer.addPortMappings(
+      { containerPort: 8125, protocol: ecs.Protocol.UDP },
+      { containerPort: 8126, protocol: ecs.Protocol.TCP }
+    );
+
+    // 起動順序の依存関係設定
+    container.addContainerDependencies({
+      container: ddAgentContainer,
+      condition: ecs.ContainerDependencyCondition.START,
+    });
 
     const sg = props.ecsSecurityGroup ?? new ec2.SecurityGroup(this, "EcsSecurityGroup", { vpc: props.vpc });
 

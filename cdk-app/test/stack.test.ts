@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import { Template } from "aws-cdk-lib/assertions";
+import { Template, Match } from "aws-cdk-lib/assertions";
 import { ThreeTierStack } from "../lib/stack";
 
 test("ThreeTierStack Synthesizes Correctly", () => {
@@ -32,4 +32,41 @@ test("ThreeTierStack Synthesizes Correctly", () => {
 
   // データベース (RDS Aurora Cluster) が作成されていることを確認
   template.resourceCountIs("AWS::RDS::DBCluster", 1);
+
+  // Datadog Agent サイドカーがタスク定義に含まれていることを確認
+  template.hasResourceProperties("AWS::ECS::TaskDefinition", {
+    ContainerDefinitions: Match.arrayWith([
+      Match.objectLike({
+        Name: "DatadogAgent",
+        Image: Match.stringLikeRegexp("gcr.io/datadoghq/agent"),
+        PortMappings: Match.arrayWith([
+          Match.objectLike({ ContainerPort: 8125, Protocol: "udp" }),
+          Match.objectLike({ ContainerPort: 8126, Protocol: "tcp" }),
+        ]),
+        Environment: Match.arrayWith([
+          { Name: "ECS_FARGATE", Value: "true" },
+          { Name: "DD_SITE", Value: "ap1.datadoghq.com" },
+        ]),
+      }),
+    ]),
+  });
+
+  // AppContainer が Datadog Agent に依存して起動し、環境変数が設定されていることを確認
+  template.hasResourceProperties("AWS::ECS::TaskDefinition", {
+    ContainerDefinitions: Match.arrayWith([
+      Match.objectLike({
+        Name: "AppContainer",
+        Environment: Match.arrayWith([
+          { Name: "DD_AGENT_HOST", Value: "localhost" },
+          { Name: "DD_TRACE_AGENT_PORT", Value: "8126" },
+        ]),
+        DependsOn: [
+          {
+            Condition: "START",
+            ContainerName: "DatadogAgent",
+          }
+        ]
+      }),
+    ]),
+  });
 });
