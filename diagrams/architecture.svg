@@ -63,7 +63,7 @@
   <g class="font-all">
     <!-- Header -->
     <text x="40" y="45" class="title-main">Secure 3-AZ 3-Tier Web Architecture with RDS Proxy</text>
-    <text x="40" y="65" class="title-sub">AWS CDK Stack: ThreeTierStack (WAF + CloudFront + ALB + Fargate + RDS Proxy + Aurora v2)</text>
+    <text x="40" y="65" class="title-sub">AWS CDK Stack: ThreeTierStack (WAF + CloudFront + ALB + Fargate + RDS Proxy + Aurora v2 Writer-Only)</text>
 
     <!-- Legend (Top Right) -->
     <g transform="translate(770, 20)">
@@ -91,8 +91,8 @@
     <g transform="translate(30, 90)" filter="url(#shadow)">
       <rect width="110" height="90" class="card" style="stroke: #ef4444; stroke-width: 1.5;" />
       <circle cx="55" cy="40" r="16" fill="#ef4444" opacity="0.2" />
-      <path d="M 45 40 L 65 40 M 55 30 L 55 50" stroke="#ef4444" stroke-width="2" stroke-linecap="round" />
-      <path d="M 48 33 L 62 47" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" />
+      <path d="M 45 40 L 65 40 M 55 30 L 55 50" stroke="#ef4444" stroke-width="2" stroke-linecap="round" fill="none" />
+      <path d="M 48 33 L 62 47" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" fill="none" />
       <text x="55" y="75" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">Route 53 (DNS)</text>
     </g>
 
@@ -100,7 +100,6 @@
     <g transform="translate(180, 250)" filter="url(#shadow)">
       <rect width="125" height="90" class="card" style="stroke: #8b5cf6; stroke-width: 1.5;" />
       <circle cx="62" cy="40" r="16" fill="#8b5cf6" opacity="0.2" />
-      <!-- fill CF Symbol -->
       <circle cx="62" cy="40" r="10" fill="none" stroke="#8b5cf6" stroke-width="1.5" />
       <path d="M 52 40 L 72 40 M 62 30 A 15 10 0 0 0 62 50" fill="none" stroke="#8b5cf6" stroke-width="1" />
       <text x="62" y="75" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6">CloudFront CDN</text>
@@ -275,17 +274,6 @@
           <text x="52" y="46" class="card-subtitle">prod/stg only</text>
           <text x="52" y="58" class="card-subtitle" fill="#64748b">dev bypasses to DB</text>
         </g>
-
-        <!-- Aurora Reader -->
-        <g transform="translate(15, 130)" filter="url(#shadow)">
-          <rect width="200" height="95" class="card" />
-          <circle cx="28" cy="48" r="14" fill="#10b981" opacity="0.2" />
-          <path d="M 20 40 C 20 37, 36 37, 36 40 L 36 56 C 36 59, 20 59, 20 56 Z M 20 45 C 20 48, 36 48, 36 45 M 20 50 C 20 53, 36 53, 36 50" stroke="#10b981" stroke-width="2" stroke-linecap="round" fill="none" />
-          <text x="52" y="34" class="card-title">Aurora DB (Reader)</text>
-          <text x="52" y="48" class="card-subtitle">Serverless v2 Replica</text>
-          <text x="52" y="60" class="card-subtitle">Port: 3306 (MySQL)</text>
-          <text x="52" y="76" font-size="9" fill="#94a3b8">Reader Node (AZ-b)</text>
-        </g>
       </g>
 
       <!-- Subnet C - Isolated -->
@@ -301,17 +289,6 @@
           <text x="52" y="32" class="card-title" fill="#1d4ed8">RDS Proxy</text>
           <text x="52" y="46" class="card-subtitle">prod/stg only</text>
           <text x="52" y="58" class="card-subtitle" fill="#64748b">dev bypasses to DB</text>
-        </g>
-
-        <!-- Aurora Reader -->
-        <g transform="translate(20, 130)" filter="url(#shadow)">
-          <rect width="200" height="95" class="card" />
-          <circle cx="28" cy="48" r="14" fill="#10b981" opacity="0.2" />
-          <path d="M 20 40 C 20 37, 36 37, 36 40 L 36 56 C 36 59, 20 59, 20 56 Z M 20 45 C 20 48, 36 48, 36 45 M 20 50 C 20 53, 36 53, 36 50" stroke="#10b981" stroke-width="2" stroke-linecap="round" fill="none" />
-          <text x="52" y="34" class="card-title">Aurora DB (Reader)</text>
-          <text x="52" y="48" class="card-subtitle">Serverless v2 Replica</text>
-          <text x="52" y="60" class="card-subtitle">Port: 3306 (MySQL)</text>
-          <text x="52" y="76" font-size="9" fill="#94a3b8">Reader Node (AZ-c)</text>
         </g>
       </g>
     </g>
@@ -355,9 +332,6 @@
     <text x="775" y="268" font-size="9" font-weight="700" fill="#1d4ed8">5. Route Traffic</text>
 
     <!-- 5. ECS Tasks to RDS Proxy (prod/stg) -->
-    <!-- Task A bottom: x=465, y=440. Proxy A top: y=495 -->
-    <!-- Task B bottom: x=705, y=440. Proxy B top: y=495 -->
-    <!-- Task C bottom: x=955, y=440. Proxy C top: y=495 -->
     <path d="M 465 440 L 465 487" class="flow-line-blue" marker-end="url(#arrow-blue)" />
     <path d="M 705 440 L 705 487" class="flow-line-blue" marker-end="url(#arrow-blue)" />
     <path d="M 955 440 L 955 487" class="flow-line-blue" marker-end="url(#arrow-blue)" />
@@ -365,21 +339,11 @@
     <!-- ECS Tasks to DB Directly (dev bypass) -->
     <!-- Points left of task to left of database (y=440 to 587) -->
     <path d="M 450 440 L 450 587" class="flow-line-dash" marker-end="url(#arrow)" />
-    <path d="M 690 440 L 690 587" class="flow-line-dash" marker-end="url(#arrow)" />
-    <path d="M 940 440 L 940 587" class="flow-line-dash" marker-end="url(#arrow)" />
     <text x="382" y="520" font-size="8" fill="#64748b" font-weight="600">dev bypass</text>
 
     <!-- 6. RDS Proxy to Aurora DB -->
     <!-- Proxy A bottom: y=570. DB A top: y=595 -->
     <path d="M 465 570 L 465 587" class="flow-line-green" marker-end="url(#arrow-green)" />
-    <path d="M 705 570 L 705 587" class="flow-line-green" marker-end="url(#arrow-green)" />
-    <path d="M 955 570 L 955 587" class="flow-line-green" marker-end="url(#arrow-green)" />
-
-    <!-- Replication link between Writer and Readers -->
-    <path d="M 560 642 L 610 642" class="flow-line-dash" marker-end="url(#arrow)" />
-    <path d="M 830 642 L 880 642" class="flow-line-dash" marker-end="url(#arrow)" />
-    <text x="585" y="635" text-anchor="middle" font-size="8" fill="#64748b" font-weight="600">Replicate</text>
-    <text x="855" y="635" text-anchor="middle" font-size="8" fill="#64748b" font-weight="600">Replicate</text>
 
     <!-- Port 3306 Badge on ECS -> RDS Proxy line -->
     <g transform="translate(475, 455)">
