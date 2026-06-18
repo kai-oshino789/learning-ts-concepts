@@ -1,0 +1,23 @@
+{
+  "name": "cdktf-datadog",
+  "version": "1.0.0",
+  "description": "CDK for Terraform project for Datadog monitoring",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "compile": "tsc --noEmit",
+    "synth": "cdktf synth"
+  },
+  "dependencies": {
+    "@cdktf/provider-datadog": "^11.0.0",
+    "cdktf": "^0.20.7",
+    "constructs": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "cdktf-cli": "^0.21.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

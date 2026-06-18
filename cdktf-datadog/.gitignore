@@ -1,0 +1,11 @@
+# CDKTF outputs
+cdktf.out/
+.terraform/
+dist/
+
+# State files
+*.tfstate
+*.tfstate.backup
+
+# Dependency directories
+node_modules/
