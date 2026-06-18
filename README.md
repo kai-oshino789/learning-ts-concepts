@@ -54,6 +54,11 @@
   - `lib/constructs/database.ts` - Aurora Serverless v2 定義
   - `lib/stack.ts` - 3層アーキテクチャ統合スタック
   - `test/stack.test.ts` - **CDKアサーションテストコード**
+- `cdktf-datadog/` - CDKTF アプリケーション（Datadog監視定義）
+  - `main.ts` - CDKTFスタック生成エントリ
+  - `lib/config/config.ts` - 環境設定抽象化ヘルパー
+  - `lib/datadog-stack.ts` - Datadogスタック定義（S3/DynamoDBリモートステート対応）
+  - `lib/monitors/` - 各AWSリソース（ECS/RDS）のDatadogモニター（アラート）定義
 - `app/` - アプリケーションコード
   - `Dockerfile` - Nginxコンテナ定義（**セキュリティ自動パッチ機能付き**）
   - `index.html` - 静的デモ画面
@@ -77,6 +82,43 @@ npm test
 ```powershell
 # 開発環境 (dev) のシンセサイズ確認
 npx cdk synth ThreeTierStack-dev -c imageTag=local-test -c natGateways=0
+```
+
+---
+
+## 📊 Datadog 監視（CDK for Terraform）の導入 ＆ セットアップ
+
+AWSインフラ（ECS, RDS）のアラート（Monitor）を TypeScript から宣言的に管理するため、**CDK for Terraform (CDKTF)** を導入しました。
+状態管理（State）は Amazon S3 および DynamoDB を用いたリモートバックエンドに対応しており、ローカル実行時は自動的にローカルステートにフォールバックするハイブリッド設計となっています。
+
+### 🔑 ユーザー側で必要なアクション（GitHub Secrets の設定）
+
+CDKTF による Datadog への自動デプロイ（GitHub Actions）を動作させるために、GitHub リポジトリの **Settings > Secrets and variables > Actions** に以下の Secrets を必ず登録してください。
+
+| Secret 名 | 説明 |
+| :--- | :--- |
+| `DATADOG_API_KEY` | Datadog の API キー（アカウントの監視権限） |
+| `DATADOG_APP_KEY` | Datadog の Application キー（モニター等リソース操作用） |
+| `TERRAFORM_STATE_BUCKET` | `.tfstate` 状態ファイルを保存する AWS S3 バケット名 |
+| `TERRAFORM_LOCK_TABLE` | 同時実行衝突を防ぐための AWS DynamoDB ロックテーブル名 |
+| `AWS_ACCESS_KEY_ID` | 上記 S3/DynamoDB を操作可能な IAM ユーザーのアクセスキー |
+| `AWS_SECRET_ACCESS_KEY` | 上記 IAM ユーザー of シークレットアクセスキー |
+
+### 🛠️ ローカルでの CDKTF 開発・検証手順
+
+`cdktf-datadog` ディレクトリ内で動作確認を行います。
+
+```powershell
+cd cdktf-datadog
+# 1. 依存関係のインストール（Windowsでのnode-ptyビルドエラーを避けるため ignore-scripts を指定）
+npm install --ignore-scripts
+
+# 2. TypeScript コンパイル確認
+npm run compile
+
+# 3. CloudFormation 相当の Terraform JSON の合成 (synth)
+# (ローカル検証用に適当なダミー値を設定)
+$env:TERRAFORM_STATE_BUCKET="dummy"; $env:TERRAFORM_LOCK_TABLE="dummy"; npx cdktf synth
 ```
 
 ---
