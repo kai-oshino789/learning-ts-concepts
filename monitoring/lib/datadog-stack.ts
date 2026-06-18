@@ -24,9 +24,10 @@ export class DatadogStack extends TerraformStack {
     }
 
     // Datadog プロバイダーの定義
+    // 空文字の場合は undefined を渡すことで、Terraformが実行環境の環境変数を自動で読み込めるようにします
     new DatadogProvider(this, "datadog", {
-      apiKey: props.config.apiKey,
-      appKey: props.config.appKey,
+      apiKey: props.config.apiKey || undefined,
+      appKey: props.config.appKey || undefined,
     });
 
     // 各監視アラートの構築
