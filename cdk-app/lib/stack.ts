@@ -42,13 +42,19 @@ export class ThreeTierStack extends cdk.Stack {
       dbSecurityGroup: vpcConstruct.dbSecurityGroup,
     });
 
+    // DB接続先ホスト名の決定（Proxy がある場合は Proxy のエンドポイント、ない場合は DB クラスターのホスト名）
+    const dbHost = db.proxy 
+      ? db.proxy.endpoint 
+      : db.cluster.clusterEndpoint.hostname;
+
     const compute = new ComputeConstruct(this, "ComputeConstruct", {
       instanceSize,
       envName,
       vpc: vpcConstruct.vpc,
       ecsSecurityGroup: vpcConstruct.ecsSecurityGroup,
       dbSecurityGroup: vpcConstruct.dbSecurityGroup,
-      dbSecretArn: db.secret?.secretArn,
+      dbSecret: db.secret,
+      dbHost: dbHost,
     });
 
     // GitHub Actions用 IAM ロールの作成（環境ごとにブランチを分離して最小権限を適用）
@@ -68,11 +74,13 @@ export class ThreeTierStack extends cdk.Stack {
       ecrRepository: compute.repository,
     });
 
-    // Allow DB secret to be read by ECS task role if needed
+    // Allow ECS tasks to connect to the DB (or Proxy)
     if (compute.service) {
-      db.secret.grantRead(compute.service.taskDefinition.taskRole);
-      // Allow ECS tasks to connect to the DB
-      db.cluster.connections.allowDefaultPortFrom(compute.service);
+      if (db.proxy) {
+        db.proxy.connections.allowDefaultPortFrom(compute.service);
+      } else {
+        db.cluster.connections.allowDefaultPortFrom(compute.service);
+      }
     }
 
     // Create Application Load Balancer

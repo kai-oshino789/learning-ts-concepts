@@ -11,7 +11,8 @@ export interface ComputeConstructProps {
   vpc: cdk.aws_ec2.IVpc;
   ecsSecurityGroup?: cdk.aws_ec2.ISecurityGroup;
   dbSecurityGroup?: cdk.aws_ec2.ISecurityGroup;
-  dbSecretArn?: string;
+  dbSecret?: cdk.aws_secretsmanager.ISecret;
+  dbHost?: string;
 }
 
 export class ComputeConstruct extends Construct {
@@ -66,15 +67,22 @@ export class ComputeConstruct extends Construct {
       ? ecs.ContainerImage.fromEcrRepository(this.repository, imageTag)
       : ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample");
 
+    const containerSecrets: Record<string, cdk.aws_ecs.Secret> = {};
+    if (props.dbSecret) {
+      containerSecrets.DB_USER = ecs.Secret.fromSecretsManager(props.dbSecret, "username");
+      containerSecrets.DB_PASSWORD = ecs.Secret.fromSecretsManager(props.dbSecret, "password");
+    }
+
     const container = taskDef.addContainer("AppContainer", {
       image: containerImage,
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "app" }),
       environment: {
         ENV: props.envName ?? "dev",
-        DB_SECRET_ARN: props.dbSecretArn ?? "",
+        DB_HOST: props.dbHost ?? "",
         DD_AGENT_HOST: "localhost",
         DD_TRACE_AGENT_PORT: "8126",
       },
+      secrets: containerSecrets,
     });
     container.addPortMappings({ containerPort: 80 });
 

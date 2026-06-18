@@ -52,22 +52,40 @@ test("ThreeTierStack Synthesizes Correctly", () => {
   });
 
   // AppContainer が Datadog Agent に依存して起動し、環境変数が設定されていることを確認
-  template.hasResourceProperties("AWS::ECS::TaskDefinition", {
-    ContainerDefinitions: Match.arrayWith([
-      Match.objectLike({
-        Name: "AppContainer",
-        Environment: Match.arrayWith([
-          { Name: "DD_AGENT_HOST", Value: "localhost" },
-          { Name: "DD_TRACE_AGENT_PORT", Value: "8126" },
-        ]),
-        DependsOn: [
-          {
-            Condition: "START",
-            ContainerName: "DatadogAgent",
-          }
-        ]
-      }),
-    ]),
+  // AppContainer が Datadog Agent に依存して起動し、環境変数が設定されていることを確認
+  const taskDefs = template.findResources("AWS::ECS::TaskDefinition");
+  const taskDefKeys = Object.keys(taskDefs);
+  expect(taskDefKeys.length).toBe(1);
+  const taskDef = taskDefs[taskDefKeys[0]];
+  const containerDefs = taskDef.Properties.ContainerDefinitions;
+
+  const appContainer = containerDefs.find((c: any) => c.Name === "AppContainer");
+  expect(appContainer).toBeDefined();
+
+  // 環境変数の確認
+  const env = appContainer.Environment;
+  expect(env).toContainEqual({ Name: "DD_AGENT_HOST", Value: "localhost" });
+  expect(env).toContainEqual({ Name: "DD_TRACE_AGENT_PORT", Value: "8126" });
+
+  const dbHostEnv = env.find((e: any) => e.Name === "DB_HOST");
+  expect(dbHostEnv).toBeDefined();
+  expect(dbHostEnv.Value).toHaveProperty("Fn::GetAtt");
+  expect(dbHostEnv.Value["Fn::GetAtt"][1]).toBe("Endpoint.Address");
+
+  // シークレットの確認
+  const secrets = appContainer.Secrets;
+  expect(secrets).toBeDefined();
+  expect(secrets).toContainEqual(
+    expect.objectContaining({ Name: "DB_USER" })
+  );
+  expect(secrets).toContainEqual(
+    expect.objectContaining({ Name: "DB_PASSWORD" })
+  );
+
+  // 依存関係の確認
+  expect(appContainer.DependsOn).toContainEqual({
+    Condition: "START",
+    ContainerName: "DatadogAgent",
   });
 
   // Fargate の夜間自動停止用スケーリングターゲットとスケジュールが存在することを確認
@@ -89,4 +107,7 @@ test("ThreeTierStack Synthesizes Correctly", () => {
   // Aurora の夜間自動停止用 Lambda と EventBridge ルールが存在することを確認
   template.resourceCountIs("AWS::Lambda::Function", 1);
   template.resourceCountIs("AWS::Events::Rule", 2);
+
+  // dev環境では DBProxy が存在しないこと（追加コスト0）を確認
+  template.resourceCountIs("AWS::RDS::DBProxy", 0);
 });

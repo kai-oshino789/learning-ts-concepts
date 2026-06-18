@@ -14,6 +14,7 @@ export interface DatabaseConstructProps {
 export class DatabaseConstruct extends Construct {
   public readonly cluster: cdk.aws_rds.DatabaseCluster;
   public readonly secret: cdk.aws_secretsmanager.ISecret;
+  public readonly proxy?: cdk.aws_rds.DatabaseProxy;
 
   constructor(scope: Construct, id: string, props: DatabaseConstructProps) {
     super(scope, id);
@@ -42,5 +43,15 @@ export class DatabaseConstruct extends Construct {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       securityGroups: props.dbSecurityGroup ? [props.dbSecurityGroup] : undefined,
     });
+
+    // 本番（prod）およびステージング（stg）環境のみ RDS Proxy を有効化
+    if (props.envName === "prod" || props.envName === "stg") {
+      this.proxy = this.cluster.addProxy("DbProxy", {
+        secrets: [this.secret],
+        vpc: props.vpc,
+        securityGroups: props.dbSecurityGroup ? [props.dbSecurityGroup] : undefined,
+        requireTLS: false, // テスト・接続のしやすさを優先
+      });
+    }
   }
 }
