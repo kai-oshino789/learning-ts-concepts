@@ -30,6 +30,13 @@ export class DatabaseConstruct extends Construct {
       },
     });
 
+    // prod/stg 環境のみリーダーインスタンス（リードレプリカ）を2台追加
+    const isProdOrStg = props.envName === "prod" || props.envName === "stg";
+    const readers = isProdOrStg ? [
+      rds.ClusterInstance.serverlessV2("reader1", { scaleWithWriter: true }),
+      rds.ClusterInstance.serverlessV2("reader2", { scaleWithWriter: true }),
+    ] : undefined;
+
     this.cluster = new rds.DatabaseCluster(this, "AuroraServerlessV2", {
       engine: rds.DatabaseClusterEngine.auroraMysql({
         version: rds.AuroraMysqlEngineVersion.VER_3_05_2,
@@ -38,6 +45,7 @@ export class DatabaseConstruct extends Construct {
       vpc: props.vpc,
       vpcSubnets: { subnetType: cdk.aws_ec2.SubnetType.PRIVATE_ISOLATED },
       writer: rds.ClusterInstance.serverlessV2("writer"),
+      readers: readers,
       serverlessV2MinCapacity: dbCapacity,
       serverlessV2MaxCapacity: dbCapacity * 2,
       removalPolicy: cdk.RemovalPolicy.DESTROY,

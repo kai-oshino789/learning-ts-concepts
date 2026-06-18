@@ -110,4 +110,66 @@ test("ThreeTierStack Synthesizes Correctly", () => {
 
   // dev環境では DBProxy が存在しないこと（追加コスト0）を確認
   template.resourceCountIs("AWS::RDS::DBProxy", 0);
+
+  // dev環境では DBInstance が 1つ（Writer のみ、Reader なし）であることを確認
+  template.resourceCountIs("AWS::RDS::DBInstance", 1);
 });
+
+test("ThreeTierStack - Staging Environment Synthesizes Correctly", () => {
+  const app = new cdk.App();
+  const stack = new ThreeTierStack(app, "StgStack", {
+    env: {
+      account: "123456789012",
+      region: "ap-northeast-1",
+    },
+    envName: "stg",
+    instanceSize: "t3.medium",
+    dbCapacity: 2,
+    vpcCidr: "10.1.0.0/16",
+  });
+
+  const template = Template.fromStack(stack);
+
+  // DBProxy が作成されていることを確認
+  template.resourceCountIs("AWS::RDS::DBProxy", 1);
+
+  // DBCluster が 1 つ作成されていることを確認
+  template.resourceCountIs("AWS::RDS::DBCluster", 1);
+
+  // DBInstance が 3 つ（Writer x1, Reader x2）作成されていることを確認
+  template.resourceCountIs("AWS::RDS::DBInstance", 3);
+
+  // 夜間一時停止スケジュール（dev専用）が存在しないことを確認
+  template.resourceCountIs("AWS::Lambda::Function", 0);
+  template.resourceCountIs("AWS::Events::Rule", 0);
+});
+
+test("ThreeTierStack - Production Environment Synthesizes Correctly", () => {
+  const app = new cdk.App();
+  const stack = new ThreeTierStack(app, "ProdStack", {
+    env: {
+      account: "123456789012",
+      region: "ap-northeast-1",
+    },
+    envName: "prod",
+    instanceSize: "t3.large",
+    dbCapacity: 5,
+    vpcCidr: "10.2.0.0/16",
+  });
+
+  const template = Template.fromStack(stack);
+
+  // DBProxy が作成されていることを確認
+  template.resourceCountIs("AWS::RDS::DBProxy", 1);
+
+  // DBCluster が 1 つ作成されていることを確認
+  template.resourceCountIs("AWS::RDS::DBCluster", 1);
+
+  // DBInstance が 3 つ（Writer x1, Reader x2）作成されていることを確認
+  template.resourceCountIs("AWS::RDS::DBInstance", 3);
+
+  // 夜間一時停止スケジュール（dev専用）が存在しないことを確認
+  template.resourceCountIs("AWS::Lambda::Function", 0);
+  template.resourceCountIs("AWS::Events::Rule", 0);
+});
+
