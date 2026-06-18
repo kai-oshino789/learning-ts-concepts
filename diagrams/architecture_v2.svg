@@ -387,7 +387,7 @@
     <path d="M 465 340 L 465 263" class="flow-line-dash" marker-end="url(#arrow)" />
     <path d="M 705 340 L 705 325 L 465 325 L 465 263" class="flow-line-dash" marker-end="url(#arrow)" />
     <!-- NAT GW to IGW for Internet access -->
-    <path d="M 465 178 L 465 115 L 322 115 L 322 252 L 285 252" class="flow-line-dash" marker-end="url(#arrow)" />
+    <path d="M 465 178 L 465 115 L 322 115 L 322 270 L 312 270 L 312 210 L 160 210" class="flow-line-dash" marker-end="url(#arrow)" />
     <text x="350" y="108" font-size="8" font-weight="600" fill="#64748b">Egress to Internet</text>
   </g>
 </svg>
