@@ -138,9 +138,8 @@
           <rect width="190" height="85" class="card" />
           <circle cx="28" cy="43" r="14" fill="#f59e0b" opacity="0.2" />
           <path d="M 22 43 L 34 43 M 28 37 L 28 49 M 24 39 L 32 47" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" fill="none" />
-          <text x="52" y="38" class="card-title">NAT Gateway</text>
-          <text x="52" y="56" class="card-subtitle">nat-gateway-a</text>
-          <text x="52" y="72" font-size="9" fill="#94a3b8">Outbound Traffic</text>
+          <text x="52" y="44" class="card-title">NAT Gateway</text>
+          <text x="52" y="62" font-size="9" fill="#94a3b8">Outbound Traffic</text>
         </g>
       </g>
 
