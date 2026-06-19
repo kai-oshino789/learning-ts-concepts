@@ -124,9 +124,9 @@ graph TD
   - `architecture_v2.svg` - **アーキテクチャ図（RDS Proxy ＋ SRE構成対応版）**
 - `docs/` - 運用ドキュメント・ウォークスルーの格納
   - `walkthrough.md` - **設計・実装履歴ウォークスルー**
-  - `sre/` - **SRE 信頼性ガバナンス設計（ポートフォリオ用）**
+  - `sre/` - **SRE 信頼性基準 ＆ SLO/SLI 設計定義**
     - [slo-sli.md](file:///c:/Git/learning-ts-concepts/docs/sre/slo-sli.md) - SLO/SLI 策定定義書テンプレート
-  - `governance/` - **エンタープライズガバナンス設計ドキュメント（ポートフォリオ用）**
+  - `governance/` - **マルチアカウント ＆ エンタープライズガバナンス設計方針書**
     - [multi-account-design.md](file:///c:/Git/learning-ts-concepts/docs/governance/multi-account-design.md) - マルチアカウント設計方針
     - [security-and-audit.md](file:///c:/Git/learning-ts-concepts/docs/governance/security-and-audit.md) - 監査・セキュリティ基準
     - [cost-management.md](file:///c:/Git/learning-ts-concepts/docs/governance/cost-management.md) - コスト管理・財務ガバナンス方針
