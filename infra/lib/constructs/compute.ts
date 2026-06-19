@@ -15,6 +15,8 @@ export interface ComputeConstructProps {
   dbHost?: string;
   logFirehoseArn?: string;
   logDeliveryRoleArn?: string;
+  redisHost?: string;
+  redisPort?: number;
 }
 
 export class ComputeConstruct extends Construct {
@@ -93,6 +95,8 @@ export class ComputeConstruct extends Construct {
         DB_HOST: props.dbHost ?? "",
         DD_AGENT_HOST: "localhost",
         DD_TRACE_AGENT_PORT: "8126",
+        REDIS_HOST: props.redisHost ?? "",
+        REDIS_PORT: props.redisPort ? String(props.redisPort) : "6379",
       },
       secrets: containerSecrets,
     });

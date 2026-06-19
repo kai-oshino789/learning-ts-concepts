@@ -77,6 +77,14 @@ test("ThreeTierStack Synthesizes Correctly", () => {
   expect(dbHostEnv.Value).toHaveProperty("Fn::GetAtt");
   expect(dbHostEnv.Value["Fn::GetAtt"][1]).toBe("Endpoint.Address");
 
+  const redisHostEnv = env.find((e: any) => e.Name === "REDIS_HOST");
+  expect(redisHostEnv).toBeDefined();
+  expect(redisHostEnv.Value).toHaveProperty("Fn::GetAtt");
+
+  const redisPortEnv = env.find((e: any) => e.Name === "REDIS_PORT");
+  expect(redisPortEnv).toBeDefined();
+  expect(redisPortEnv.Value).toBe("6379");
+
   // シークレットの確認
   const secrets = appContainer.Secrets;
   expect(secrets).toBeDefined();
@@ -126,6 +134,15 @@ test("ThreeTierStack Synthesizes Correctly", () => {
     RoleArn: "arn:aws:iam::222222222222:role/CrossAccountLogsDeliveryRole",
     FilterPattern: "",
   });
+
+  // dev環境では ElastiCache CacheCluster が 1つ作成されていることを確認（ReplicationGroupではない）
+  template.resourceCountIs("AWS::ElastiCache::CacheCluster", 1);
+  template.hasResourceProperties("AWS::ElastiCache::CacheCluster", {
+    CacheNodeType: "cache.t4g.micro",
+    Engine: "redis",
+    NumCacheNodes: 1,
+  });
+  template.resourceCountIs("AWS::ElastiCache::SubnetGroup", 1);
 });
 
 test("ThreeTierStack - Staging Environment Synthesizes Correctly", () => {
@@ -163,6 +180,17 @@ test("ThreeTierStack - Staging Environment Synthesizes Correctly", () => {
     RoleArn: "arn:aws:iam::222222222222:role/CrossAccountLogsDeliveryRole",
     FilterPattern: "",
   });
+
+  // ElastiCache ReplicationGroup の作成確認 (Multi-AZ, 自動フェイルオーバー有効)
+  template.resourceCountIs("AWS::ElastiCache::ReplicationGroup", 1);
+  template.hasResourceProperties("AWS::ElastiCache::ReplicationGroup", {
+    CacheNodeType: "cache.t4g.micro",
+    Engine: "redis",
+    MultiAZEnabled: true,
+    AutomaticFailoverEnabled: true,
+    NumCacheClusters: 2,
+  });
+  template.resourceCountIs("AWS::ElastiCache::SubnetGroup", 1);
 });
 
 test("ThreeTierStack - Production Environment Synthesizes Correctly", () => {
@@ -239,5 +267,16 @@ test("ThreeTierStack - Production Environment Synthesizes Correctly", () => {
     RoleArn: "arn:aws:iam::222222222222:role/CrossAccountLogsDeliveryRole",
     FilterPattern: "",
   });
+
+  // ElastiCache ReplicationGroup の作成確認 (Multi-AZ, 自動フェイルオーバー有効)
+  template.resourceCountIs("AWS::ElastiCache::ReplicationGroup", 1);
+  template.hasResourceProperties("AWS::ElastiCache::ReplicationGroup", {
+    CacheNodeType: "cache.t4g.micro",
+    Engine: "redis",
+    MultiAZEnabled: true,
+    AutomaticFailoverEnabled: true,
+    NumCacheClusters: 2,
+  });
+  template.resourceCountIs("AWS::ElastiCache::SubnetGroup", 1);
 });
 

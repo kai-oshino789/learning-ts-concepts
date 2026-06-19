@@ -13,6 +13,7 @@ export class VpcConstruct extends Construct {
   public readonly albSecurityGroup: cdk.aws_ec2.SecurityGroup;
   public readonly ecsSecurityGroup: cdk.aws_ec2.SecurityGroup;
   public readonly dbSecurityGroup: cdk.aws_ec2.SecurityGroup;
+  public readonly redisSecurityGroup: cdk.aws_ec2.SecurityGroup;
 
   constructor(scope: Construct, id: string, props?: VpcConstructProps) {
     super(scope, id);
@@ -83,6 +84,19 @@ export class VpcConstruct extends Construct {
       vpc: this.vpc,
       description: "Security group for Aurora DB",
     });
+
+    // Redis用セキュリティグループ
+    this.redisSecurityGroup = new ec2.SecurityGroup(this, "RedisSecurityGroup", {
+      vpc: this.vpc,
+      description: "Security group for ElastiCache Redis",
+    });
+
+    // ECS → Redis (6379) の通信を許可
+    this.redisSecurityGroup.addIngressRule(
+      this.ecsSecurityGroup,
+      ec2.Port.tcp(6379),
+      "Allow inbound from ECS tasks on Redis port"
+    );
 
   }
 }

@@ -6,6 +6,7 @@ import { VpcConstruct } from "./constructs/network";
 import { DatabaseConstruct } from "./constructs/database";
 import { ComputeConstruct } from "./constructs/compute";
 import { GithubActionsRoleConstruct } from "./constructs/github-role";
+import { CacheConstruct } from "./constructs/cache";
 
 function getSharedOutputs(envName: string) {
   try {
@@ -78,6 +79,12 @@ export class ThreeTierStack extends cdk.Stack {
 
     const vpcConstruct = new VpcConstruct(this, "VpcConstruct", { envName, vpcCidr });
 
+    const cache = new CacheConstruct(this, "CacheConstruct", {
+      envName,
+      vpc: vpcConstruct.vpc,
+      redisSecurityGroup: vpcConstruct.redisSecurityGroup,
+    });
+
     const db = new DatabaseConstruct(this, "DatabaseConstruct", {
       dbCapacity,
       envName,
@@ -102,6 +109,8 @@ export class ThreeTierStack extends cdk.Stack {
       dbHost: dbHost,
       logFirehoseArn: firehoseArn,
       logDeliveryRoleArn: roleArn,
+      redisHost: cache.redisHost,
+      redisPort: cache.redisPort,
     });
 
     // GitHub Actions用 IAM ロールの作成（環境ごとにブランチを分離して最小権限を適用）
