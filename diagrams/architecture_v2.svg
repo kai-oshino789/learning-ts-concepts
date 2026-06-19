@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="780" viewBox="0 0 1120 780">
+<svg xmlns="http://www.w3.org/2000/svg" width="1420" height="780" viewBox="0 0 1420 780">
   <defs>
     <!-- Background grid -->
     <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -66,7 +66,7 @@
     <text x="40" y="65" class="title-sub">AWS CDK Stack: ThreeTierStack (WAF + CloudFront + ALB + Fargate + RDS Proxy + Aurora v2 Multi-AZ)</text>
 
     <!-- Legend (Top Right) -->
-    <g transform="translate(770, 20)">
+    <g transform="translate(1070, 20)">
       <rect x="0" y="0" width="310" height="40" fill="#ffffff" stroke="#e2e8f0" rx="6" filter="url(#shadow)" />
       
       <circle cx="20" cy="20" r="6" fill="#f59e0b" />
@@ -388,5 +388,61 @@
     <!-- NAT GW to IGW for Internet access -->
     <path d="M 370 220.5 L 322 220.5 L 322 135 L 140 135" class="flow-line-dash" marker-end="url(#arrow)" />
     <text x="350" y="213" font-size="8" font-weight="600" fill="#64748b">Egress to Internet</text>
+
+    <!-- ==================== AWS REGION SERVICES ==================== -->
+    <!-- CloudWatch Logs (Region Service) -->
+    <g transform="translate(1120, 80)" filter="url(#shadow)">
+      <rect width="270" height="120" class="card" style="stroke: #3b82f6; stroke-width: 1.5; stroke-dasharray: 4 4;" />
+      <circle cx="28" cy="45" r="14" fill="#3b82f6" opacity="0.15" />
+      <!-- CW Logs simple icon -->
+      <path d="M 20 40 L 36 40 M 20 45 L 36 45 M 20 50 L 30 50" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" fill="none" />
+      <text x="52" y="32" class="card-title" fill="#1d4ed8">Amazon CloudWatch Logs</text>
+      <text x="52" y="48" class="card-subtitle" font-weight="700">Log Group: AppLogGroup</text>
+      <text x="52" y="60" class="card-subtitle">/ecs/env/AppContainer</text>
+      
+      <!-- Filter Info badge -->
+      <rect x="52" y="74" width="200" height="34" fill="#eff6ff" rx="4" stroke="#bfdbfe" stroke-width="1" />
+      <text x="60" y="87" font-size="8.5" font-weight="700" fill="#1e40af">Subscription Filter (L1)</text>
+      <text x="60" y="98" font-size="8" fill="#1e40af">Filter: allEvents()</text>
+    </g>
+
+    <!-- ==================== LOG ARCHIVE ACCOUNT ==================== -->
+    <g transform="translate(1120, 225)">
+      <rect width="270" height="200" fill="#f0fdf4" stroke="#10b981" stroke-width="2" stroke-dasharray="6 6" rx="16" />
+      <text x="20" y="26" font-size="13" font-weight="800" fill="#15803d">Log Archive Account</text>
+      
+      <!-- Kinesis Data Firehose Card -->
+      <g transform="translate(20, 45)" filter="url(#shadow)">
+        <rect width="230" height="130" class="card" style="stroke: #10b981; stroke-width: 1.5;" />
+        <circle cx="28" cy="45" r="14" fill="#10b981" opacity="0.15" />
+        <!-- Firehose Icon representation -->
+        <path d="M 20 41 L 36 41 M 20 45 L 36 45 M 20 49 L 36 49" stroke="#10b981" stroke-width="2" stroke-linecap="round" fill="none" />
+        <text x="52" y="32" class="card-title" fill="#15803d">Kinesis Data Firehose</text>
+        <text x="52" y="48" class="card-subtitle" font-weight="700">LogArchiveDeliveryStream</text>
+        <text x="52" y="60" class="card-subtitle">arn:aws:firehose:...:222222222222</text>
+        <text x="52" y="72" class="card-subtitle" fill="#64748b">Cross-Account Logs Delivery</text>
+
+        <!-- S3 Log Bucket Destination -->
+        <rect x="15" y="85" width="200" height="34" fill="#f0fdf4" rx="4" stroke="#bbf7d0" stroke-width="1" />
+        <text x="25" y="98" font-size="9" font-weight="700" fill="#15803d">Destination S3 Bucket</text>
+        <text x="25" y="109" font-size="8" fill="#166534">aws-landing-zone managed</text>
+      </g>
+    </g>
+
+    <!-- ==================== LOG PIPELINE FLOWS ==================== -->
+    <!-- ECS Tasks to CloudWatch Logs -->
+    <!-- Task A -> CWL -->
+    <path d="M 560 395 L 1120 140" class="flow-line-dash" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-blue)" />
+    <!-- Task B -> CWL -->
+    <path d="M 805 395 L 1120 140" class="flow-line-dash" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-blue)" />
+    <!-- Task C -> CWL -->
+    <path d="M 1055 395 L 1120 140" class="flow-line-dash" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-blue)" />
+
+    <!-- CloudWatch Logs to Kinesis Data Firehose (Cross-Account) -->
+    <path d="M 1255 200 L 1255 260" class="flow-line-green" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-green)" />
+    <g transform="translate(1265, 222)">
+      <text x="0" y="5" font-size="9" font-weight="700" fill="#15803d">Cross-Account Log Delivery</text>
+      <text x="0" y="15" font-size="8" fill="#166534">(CfnSubscriptionFilter)</text>
+    </g>
   </g>
 </svg>
