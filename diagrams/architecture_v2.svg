@@ -459,7 +459,7 @@
       <circle cx="28" cy="45" r="14" fill="#15803d" opacity="0.15" />
       <path d="M 20 38 L 36 38 L 36 54 A 8 8 0 0 1 20 54 Z" fill="none" stroke="#15803d" stroke-width="2" />
       <path d="M 20 44 L 36 44 M 20 50 L 36 50" stroke="#15803d" stroke-width="1.5" />
-      <text x="52" y="32" class="card-title" fill="#166534">Amazon S3 (Asset & Log Storage)</text>
+      <text x="52" y="32" class="card-title" fill="#166534">Amazon S3 (Asset and Log Storage)</text>
       <text x="52" y="48" class="card-subtitle" font-weight="700">Bucket: app-static-assets</text>
       <text x="52" y="60" class="card-subtitle">Private Access via OAC / Gateway Endpoint</text>
       <text x="52" y="76" font-size="9" font-weight="600" fill="#15803d">VPC Gateway Endpoint Route</text>
