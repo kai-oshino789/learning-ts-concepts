@@ -18,6 +18,7 @@
 | **ECR Repository URI** | `555555555555.dkr.ecr.ap-northeast-1.amazonaws.com/app-repo-dev` | `.github/workflows/deploy.yml` (ECR_REPO) |
 | **CDKTF S3 Bucket** | `aws-landing-zone-cdktf-state-dev` | `.github/workflows/datadog.yml` (TERRAFORM_STATE_BUCKET) |
 | **CDKTF DynamoDB Table**| `aws-landing-zone-cdktf-lock-dev` | `.github/workflows/datadog.yml` (TERRAFORM_LOCK_TABLE) |
+| **Static Assets S3 Bucket** | `static-assets-dev-555555555555` | `docs/runbook/application-deployment.md` (アセット同期先) |
 | **LOG_ARCHIVE_FIREHOSE_ARN** | `arn:aws:firehose:ap-northeast-1:222222222222:deliverystream/LogArchiveDeliveryStream` | CloudWatch Logs配信先のFirehoseストリームARN |
 | **LOG_ARCHIVE_DELIVERY_ROLE_ARN** | `arn:aws:iam::222222222222:role/CrossAccountLogsDeliveryRole` | CloudWatch LogsがFirehoseへ送信する際に利用するロールARN |
 
@@ -29,6 +30,7 @@
 | **ECR Repository URI** | `666666666666.dkr.ecr.ap-northeast-1.amazonaws.com/app-repo-stg` | `.github/workflows/deploy.yml` (ECR_REPO) |
 | **CDKTF S3 Bucket** | `aws-landing-zone-cdktf-state-stg` | `.github/workflows/datadog.yml` (TERRAFORM_STATE_BUCKET) |
 | **CDKTF DynamoDB Table**| `aws-landing-zone-cdktf-lock-stg` | `.github/workflows/datadog.yml` (TERRAFORM_LOCK_TABLE) |
+| **Static Assets S3 Bucket** | `static-assets-stg-666666666666` | `docs/runbook/application-deployment.md` (アセット同期先) |
 | **LOG_ARCHIVE_FIREHOSE_ARN** | `arn:aws:firehose:ap-northeast-1:222222222222:deliverystream/LogArchiveDeliveryStream` | CloudWatch Logs配信先のFirehoseストリームARN |
 | **LOG_ARCHIVE_DELIVERY_ROLE_ARN** | `arn:aws:iam::222222222222:role/CrossAccountLogsDeliveryRole` | CloudWatch LogsがFirehoseへ送信する際に利用するロールARN |
 
@@ -40,6 +42,7 @@
 | **ECR Repository URI** | `777777777777.dkr.ecr.ap-northeast-1.amazonaws.com/app-repo-prod` | `.github/workflows/deploy.yml` (ECR_REPO) |
 | **CDKTF S3 Bucket** | `aws-landing-zone-cdktf-state-prod` | `.github/workflows/datadog.yml` (TERRAFORM_STATE_BUCKET) |
 | **CDKTF DynamoDB Table**| `aws-landing-zone-cdktf-lock-prod` | `.github/workflows/datadog.yml` (TERRAFORM_LOCK_TABLE) |
+| **Static Assets S3 Bucket** | `static-assets-prod-777777777777` | `docs/runbook/application-deployment.md` (アセット同期先) |
 | **LOG_ARCHIVE_FIREHOSE_ARN** | `arn:aws:firehose:ap-northeast-1:222222222222:deliverystream/LogArchiveDeliveryStream` | CloudWatch Logs配信先のFirehoseストリームARN |
 | **LOG_ARCHIVE_DELIVERY_ROLE_ARN** | `arn:aws:iam::222222222222:role/CrossAccountLogsDeliveryRole` | CloudWatch LogsがFirehoseへ送信する際に利用するロールARN |
 
