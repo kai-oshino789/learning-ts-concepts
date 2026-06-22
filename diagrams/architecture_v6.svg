@@ -491,7 +491,7 @@
     <text x="1090" y="338" text-anchor="end" font-size="9" font-weight="700" fill="#be123c">8. Cache Access</text>
 
     <!-- 9. ECS Tasks to S3 via S3 Gateway Endpoint -->
-    <path d="M 955 450 L 955 480 L 1055 480 L 1055 625 L 1072 625" class="flow-line-dash" stroke="#15803d" stroke-width="1.5" stroke-dasharray="3 3" fill="none" />
+    <path d="M 1040 450 L 1040 475 L 1065 475 L 1065 625 L 1072 625" class="flow-line-dash" stroke="#15803d" stroke-width="1.5" stroke-dasharray="3 3" fill="none" />
     <path d="M 1090 625 L 1120 625" class="flow-line-green" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)" />
     <text x="1065" y="525" text-anchor="end" font-size="9" fill="#15803d" font-weight="700">9. S3 Access (Private)</text>
   </g>
