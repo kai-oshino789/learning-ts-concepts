@@ -20,7 +20,7 @@
 
 ### 📊 アーキテクチャ図
 
-![Architecture](diagrams/architecture_v2.svg)
+![Architecture](./diagrams/architecture_v2.svg)
 
 #### 📝 ログ配信フロー (Log Pipeline Diagram)
 
