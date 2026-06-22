@@ -411,5 +411,19 @@ export class ThreeTierStack extends cdk.Stack {
         })
       );
     }
+
+    // DB & Redis セキュリティグループの送信（Egress）通信の遮断を確実にするため、
+    // すべての接続設定が完了した後に、明示的にダミー拒否Egressルールを追加する。
+    // これにより、CDK内部処理によるルールの喪失を防ぎ、CloudFormationによるデフォルト全許可の自動作成を回避する。
+    vpcConstruct.dbSecurityGroup.addEgressRule(
+      cdk.aws_ec2.Peer.ipv4("255.255.255.255/32"),
+      cdk.aws_ec2.Port.icmpTypeAndCode(252, 86),
+      "Disallow all outbound traffic"
+    );
+    vpcConstruct.redisSecurityGroup.addEgressRule(
+      cdk.aws_ec2.Peer.ipv4("255.255.255.255/32"),
+      cdk.aws_ec2.Port.icmpTypeAndCode(252, 86),
+      "Disallow all outbound traffic"
+    );
   }
 }

@@ -23,11 +23,27 @@ test("ThreeTierStack Synthesizes Correctly", () => {
   // DB & Redis セキュリティグループのアウトバウンド制限（Egressルールが不在であること）の検証
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {
     GroupDescription: "Security group for Aurora DB (No outbound allowed)",
-    SecurityGroupEgress: Match.absent(),
+    SecurityGroupEgress: [
+      {
+        CidrIp: "255.255.255.255/32",
+        Description: "Disallow all outbound traffic",
+        FromPort: 252,
+        IpProtocol: "icmp",
+        ToPort: 86,
+      },
+    ],
   });
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {
     GroupDescription: "Security group for ElastiCache Redis (No outbound allowed)",
-    SecurityGroupEgress: Match.absent(),
+    SecurityGroupEgress: [
+      {
+        CidrIp: "255.255.255.255/32",
+        Description: "Disallow all outbound traffic",
+        FromPort: 252,
+        IpProtocol: "icmp",
+        ToPort: 86,
+      },
+    ],
   });
 
   // ALB が作成されていることを確認
@@ -302,11 +318,27 @@ test("ThreeTierStack - Staging Environment Synthesizes Correctly", () => {
   // DB & Redis セキュリティグループのアウトバウンド制限（Egressルールが不在であること）の検証
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {
     GroupDescription: "Security group for Aurora DB (No outbound allowed)",
-    SecurityGroupEgress: Match.absent(),
+    SecurityGroupEgress: [
+      {
+        CidrIp: "255.255.255.255/32",
+        Description: "Disallow all outbound traffic",
+        FromPort: 252,
+        IpProtocol: "icmp",
+        ToPort: 86,
+      },
+    ],
   });
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {
     GroupDescription: "Security group for ElastiCache Redis (No outbound allowed)",
-    SecurityGroupEgress: Match.absent(),
+    SecurityGroupEgress: [
+      {
+        CidrIp: "255.255.255.255/32",
+        Description: "Disallow all outbound traffic",
+        FromPort: 252,
+        IpProtocol: "icmp",
+        ToPort: 86,
+      },
+    ],
   });
 
   // DBProxy が作成されていることを確認
@@ -412,11 +444,27 @@ test("ThreeTierStack - Production Environment Synthesizes Correctly", () => {
   // DB & Redis セキュリティグループのアウトバウンド制限（Egressルールが不在であること）の検証
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {
     GroupDescription: "Security group for Aurora DB (No outbound allowed)",
-    SecurityGroupEgress: Match.absent(),
+    SecurityGroupEgress: [
+      {
+        CidrIp: "255.255.255.255/32",
+        Description: "Disallow all outbound traffic",
+        FromPort: 252,
+        IpProtocol: "icmp",
+        ToPort: 86,
+      },
+    ],
   });
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {
     GroupDescription: "Security group for ElastiCache Redis (No outbound allowed)",
-    SecurityGroupEgress: Match.absent(),
+    SecurityGroupEgress: [
+      {
+        CidrIp: "255.255.255.255/32",
+        Description: "Disallow all outbound traffic",
+        FromPort: 252,
+        IpProtocol: "icmp",
+        ToPort: 86,
+      },
+    ],
   });
 
   // DBProxy が作成されていることを確認
