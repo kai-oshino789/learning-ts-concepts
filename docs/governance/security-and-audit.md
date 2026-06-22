@@ -25,13 +25,17 @@
         "route53:*",
         "cloudfront:*",
         "wafv2:*",
-        "support:*"
+        "support:*",
+        "acm:*",
+        "budgets:*",
+        "ce:*"
       ],
       "Resource": "*",
       "Condition": {
         "StringNotEquals": {
           "aws:RequestedRegion": [
-            "ap-northeast-1"
+            "ap-northeast-1",
+            "ap-northeast-3"
           ]
         }
       }
