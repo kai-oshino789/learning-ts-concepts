@@ -146,6 +146,25 @@ test("ThreeTierStack Synthesizes Correctly", () => {
     ContainerName: "DatadogAgent",
   });
 
+  // 読み取り専用ファイルシステムの設定確認
+  expect(appContainer.ReadonlyRootFilesystem).toBe(true);
+
+  // マウントポイントの確認
+  expect(appContainer.MountPoints).toContainEqual(
+    expect.objectContaining({
+      ContainerPath: "/tmp",
+      SourceVolume: "tmp-volume",
+      ReadOnly: false,
+    })
+  );
+
+  // ボリュームの確認
+  expect(taskDef.Properties.Volumes).toContainEqual(
+    expect.objectContaining({
+      Name: "tmp-volume",
+    })
+  );
+
   // Fargate の夜間自動停止用スケーリングターゲットとスケジュールが存在することを確認
   template.hasResourceProperties("AWS::ApplicationAutoScaling::ScalableTarget", {
     MinCapacity: 0,

@@ -74,6 +74,10 @@ export class ComputeConstruct extends Construct {
       memoryLimitMiB: spec.memoryMiB,
     });
 
+    taskDef.addVolume({
+      name: "tmp-volume",
+    });
+
     // ECS Exec (AWS SSM) に必要な IAM 権限の付与 (Task Role に対して)
     taskDef.addToTaskRolePolicy(
       new cdk.aws_iam.PolicyStatement({
@@ -144,6 +148,13 @@ export class ComputeConstruct extends Construct {
         REDIS_PORT: props.redisPort ? String(props.redisPort) : "6379",
       },
       secrets: containerSecrets,
+      readonlyRootFilesystem: true,
+    });
+
+    container.addMountPoints({
+      containerPath: "/tmp",
+      sourceVolume: "tmp-volume",
+      readOnly: false,
     });
 
     // 集約アカウントへのログ転送（CfnSubscriptionFilter）の設定

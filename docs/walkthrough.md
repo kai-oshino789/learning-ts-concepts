@@ -331,3 +331,41 @@ Generated Terraform code for the stacks: datadog-monitoring-dev
 - `stg` / `prod` 環境にて `AWS::SecretsManager::RotationSchedule` が 1 件作成されていることをアサーション検証。
 - 環境ごとのローテーション Lambda 作成（サーバーレスアプリケーションテンプレート経由）に配慮しつつ、各環境でプロビジョニングされる Lambda 個数の期待値（dev: 2、stg: 1、prod: 0）が正しいことを検証。
 
+---
+
+## 14. データベースおよびRedisセキュリティグループの送信通信（Egress）遮断の徹底
+
+### 変更内容
+
+#### 1. [stack.ts (CDKインフラ定義)](file:///c:/Git/learning-ts-concepts/infra/lib/stack.ts)
+- `dbSecurityGroup` と `redisSecurityGroup` に対し、すべてのリソースと接続設定の完了後に明示的にダミー拒否 Egress ルール（`255.255.255.255/32` ICMP 252/86、Description: `"Disallow all outbound traffic"`) を追加する処理を実装。
+- これにより、CDKの `connections.allowFrom` などの処理の後に意図せず CloudFormation のデフォルト「全送信許可 (0.0.0.0/0)」が自動付与されてしまう挙動を完全に抑止。
+
+#### 2. [stack.test.ts (CDKアサーションテストの更新)](file:///c:/Git/learning-ts-concepts/infra/test/stack.test.ts)
+- `dev`、`stg`、`prod` すべての環境において、`DbSecurityGroup` および `RedisSecurityGroup` にインラインでダミー拒否ルールが定義されていることをアサーション検証するテストを追加。
+
+---
+
+## 15. VPC S3 ゲートウェイエンドポイントの追加
+
+### 変更内容
+
+#### 1. [network.ts (VPC定義)](file:///c:/Git/learning-ts-concepts/infra/lib/constructs/network.ts)
+- `ec2.Vpc` のコンストラクタパラメータに `gatewayEndpoints` を定義し、S3 ゲートウェイエンドポイントを有効化。これにより、各サブネットのルートテーブルに自動的に S3 へのルーティングルールが構成され、NAT Gateway を経由するデータ処理料金（$0.062 / GB）を完全に回避して無料かつ高速に通信が可能になりました。
+
+#### 2. [stack.test.ts (CDKユニットテストの追加)](file:///c:/Git/learning-ts-concepts/infra/test/stack.test.ts)
+- すべての環境スタックにおいて、S3 ゲートウェイエンドポイント（`AWS::EC2::VPCEndpoint`, Type: `Gateway`）が正しくプロビジョニングされていることをアサーション検証するテストを追加。
+
+---
+
+## 16. ECS Fargate コンテナの読み取り専用ルートファイルシステム化
+
+### 変更内容
+
+#### 1. [compute.ts (ECS Fargate定義)](file:///c:/Git/learning-ts-concepts/infra/lib/constructs/compute.ts)
+- コンテナの実行時改ざんリスクを物理的に排除するため、`AppContainer` の定義に `readonlyRootFilesystem: true` を設定し、システム領域を完全に読み取り専用化。
+- Nginxの動作に不可避な一時書き込み先 `/tmp` を逃がすため、タスク定義に一時ボリューム `tmp-volume` を定義し、`AppContainer` の `/tmp` ディレクトリにインメモリボリュームとしてマウントする設定（`addMountPoints`）を追加。
+
+#### 2. [stack.test.ts (CDKアサーションテストの追加)](file:///c:/Git/learning-ts-concepts/infra/test/stack.test.ts)
+- `AppContainer` の `ReadonlyRootFilesystem` が `true` に設定されていること、`/tmp` に対するマウントポイント設定、および `tmp-volume` ボリュームの存在をアサーション検証するテストコードを追加。
+
