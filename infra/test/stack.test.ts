@@ -20,6 +20,25 @@ test("ThreeTierStack Synthesizes Correctly", () => {
   // VPC が作成されていることを確認
   template.resourceCountIs("AWS::EC2::VPC", 1);
 
+  // S3 ゲートウェイエンドポイントが作成されていることを確認
+  template.resourceCountIs("AWS::EC2::VPCEndpoint", 1);
+  template.hasResourceProperties("AWS::EC2::VPCEndpoint", {
+    VpcEndpointType: "Gateway",
+    ServiceName: {
+      "Fn::Join": [
+        "",
+        [
+          "com.amazonaws.",
+          { Ref: "AWS::Region" },
+          ".s3"
+        ]
+      ]
+    },
+    VpcId: {
+      Ref: Match.stringLikeRegexp("VpcConstructVpc.*")
+    }
+  });
+
   // DB & Redis セキュリティグループのアウトバウンド制限（Egressルールが不在であること）の検証
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {
     GroupDescription: "Security group for Aurora DB (No outbound allowed)",
@@ -315,6 +334,25 @@ test("ThreeTierStack - Staging Environment Synthesizes Correctly", () => {
 
   const template = Template.fromStack(stack);
 
+  // S3 ゲートウェイエンドポイントが作成されていることを確認
+  template.resourceCountIs("AWS::EC2::VPCEndpoint", 1);
+  template.hasResourceProperties("AWS::EC2::VPCEndpoint", {
+    VpcEndpointType: "Gateway",
+    ServiceName: {
+      "Fn::Join": [
+        "",
+        [
+          "com.amazonaws.",
+          { Ref: "AWS::Region" },
+          ".s3"
+        ]
+      ]
+    },
+    VpcId: {
+      Ref: Match.stringLikeRegexp("VpcConstructVpc.*")
+    }
+  });
+
   // DB & Redis セキュリティグループのアウトバウンド制限（Egressルールが不在であること）の検証
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {
     GroupDescription: "Security group for Aurora DB (No outbound allowed)",
@@ -440,6 +478,25 @@ test("ThreeTierStack - Production Environment Synthesizes Correctly", () => {
   });
 
   const template = Template.fromStack(stack);
+
+  // S3 ゲートウェイエンドポイントが作成されていることを確認
+  template.resourceCountIs("AWS::EC2::VPCEndpoint", 1);
+  template.hasResourceProperties("AWS::EC2::VPCEndpoint", {
+    VpcEndpointType: "Gateway",
+    ServiceName: {
+      "Fn::Join": [
+        "",
+        [
+          "com.amazonaws.",
+          { Ref: "AWS::Region" },
+          ".s3"
+        ]
+      ]
+    },
+    VpcId: {
+      Ref: Match.stringLikeRegexp("VpcConstructVpc.*")
+    }
+  });
 
   // DB & Redis セキュリティグループのアウトバウンド制限（Egressルールが不在であること）の検証
   template.hasResourceProperties("AWS::EC2::SecurityGroup", {

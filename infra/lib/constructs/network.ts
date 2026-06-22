@@ -46,6 +46,11 @@ export class VpcConstruct extends Construct {
           cidrMask: 24,
         },
       ],
+      gatewayEndpoints: {
+        S3: {
+          service: ec2.GatewayVpcEndpointAwsService.S3,
+        },
+      },
     });
 
     // ALB用セキュリティグループ
