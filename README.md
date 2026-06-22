@@ -15,6 +15,7 @@
 - **可観測性 (Observability)**: **Datadog Agent (サイドカーパターン)** による APM トレース ＆ カスタムメトリクス収集
 - **ログ集約 (Governance)**: **Kinesis Data Firehose** 経由での `Log Archive` アカウントへのクロスアカウントログ転送
 - **データ層**: Amazon Aurora Serverless v2 (MySQL 互換)
+- **データ転送最適化**: **S3 ゲートウェイ VPC エンドポイント**による無料の閉域網接続
 - **マルチ環境対応**: `dev` / `stg` / `prod` の独立した 3 スタック構成
 
 ### 📊 アーキテクチャ図
@@ -69,37 +70,37 @@ graph TD
   *   `dev` 環境：コスト極小化のため、レプリカなし・マルチAZ無効のシングルノード構成（`cache.t4g.micro`）。
   *   `stg`/`prod` 環境：高可用性確保のため、プライマリ1台＋レプリカ1台のマルチAZ構成・自動フェイルオーバー有効のレプリケーションクラスター構成（`cache.t4g.micro`）。
 
-### 5. Secrets Manager 認証情報の自動ローテーション
+### 6. Secrets Manager 認証情報の自動ローテーション
 *   **AWS 標準テンプレートの採用**: 資格情報の長期固定化リスクを排除するため、標準提供されている MySQL シングルユーザーローテーションテンプレート（`MYSQL_ROTATION_SINGLE_USER`）を使用した AWS Lambda による定期パスワード変更を実装。
 *   **ローテーションの環境別スイッチ**: 自動更新 Lambda の常時起動コストや API 料金を避けるため、`stg`/`prod` のみ 30日周期での自動ローテーションを設定し、開発環境 (`dev`) では自動ローテーションをスキップ。
 
-### 6. ECS Exec 安全デバッグ ＆ 監査ロギング
+### 7. ECS Exec 安全デバッグ ＆ 監査ロギング
 *   **本番環境での無効化強制**: 開発・ステージング環境 (`dev`/`stg`) はデバッグ効率化のため ECS Exec を `true` に設定し、本番環境 (`prod`) のみセキュリティ境界維持のため `enableExecuteCommand: false` を適用。
 *   **操作セッションの完全監査ログ**: コンテナに対するリモートコマンドの操作ログを専用のロググループへオーバーライド転送。通信およびログ書き込みは KMS CMK によって強力に暗号化。
 
-### 7. データ堅牢性の保護（変更管理・事故防止）
+### 8. データ堅牢性の保護（変更管理・事故防止）
 *   **本番DB削除保護と保持ポリシー**: 本番環境（`prod`）の Aurora Serverless v2 DBクラスターに対して、`deletionProtection: true` を明示的に設定。また、スタック削除時にもデータが安全に保護されるよう `removalPolicy` を `RETAIN` に設定しています（`dev`/`stg` 環境は開発効率のために `DESTROY` を許容）。
 
-### 8. 可観測性 (Observability) - Datadog サイドカー
+### 9. 可観測性 (Observability) - Datadog サイドカー
 *   **サイドカーパターン**: 各 ECS タスク内に、アプリケーションコンテナ（`AppContainer`）と並行して **Datadog Agent** コンテナを同居させるサイドカー設計を採用。
 *   **通信の局所化**: Fargate の `awsvpc` モードの特性を活かし、メインアプリと Datadog Agent 間の通信は `localhost` (Port: 8125/UDP for DogStatsD, 8126/TCP for APM) を通じて超低遅延で完結します。
 *   **起動順序制御 (Container Dependency)**: APMやメトリクス収集の漏れを防ぐため、Datadog Agent が正常に起動（`START`）した後にアプリケーションコンテナが立ち上がる依存関係を CDK で定義しています。
 
-### 9. セキュリティガバナンス ＆ クロスアカウントログ集約（Log Archive）
+### 10. セキュリティガバナンス ＆ クロスアカウントログ集約（Log Archive）
 *   **安全なログ集約ライン**: アプリケーション（ECS Fargate）のコンテナログを、セキュリティ保護された別アカウント（`Log Archive`）の **Kinesis Data Firehose** へと直接リアルタイムにストリーミング配信します。
 *   **CfnSubscriptionFilter (L1) によるバインド**: クロスアカウント境界における IAM Role/Kinesis ARN バインド時のバリデーション制約をクリアするため、L2 の `SubscriptionFilter` ではなく L1 の `CfnSubscriptionFilter` を採用。`shared-outputs.md` から読み取った動的な接続 ARN を直接バインドするセキュアな構造です。
 *   **GitOps パラメータ連携**: 管理リポジトリ `aws-landing-zone` と本リポジトリ間で `shared-outputs.md` をインターフェースとして使用。アカウントIDや配信先ストリームの変更に追従する GitOps 連携を自動化しています。
 
-### 10. 高可用性 ＆ 動的オートスケーリング
+### 11. 高可用性 ＆ 動的オートスケーリング
 *   **ターゲット追跡スケーリング（Target Tracking）**: 本番（`prod`）およびステージング（`stg`）環境において、CPU使用率およびメモリ使用率（閾値: 70%）に基づく動的なオートスケーリングを設定。突発的なアクセススパイクに対応可能です。
 *   **最小稼働台数のマルチAZ保護**: 本番環境（`prod`）では、常に最低 2 台以上のタスクが異なるAZ（アベイラビリティゾーン）に分散配置され、単一障害点（SPOF）を徹底して排除しています。
 *   **開発コストの極小化とスケジュール制御**: 開発環境（`dev`）ではオートスケーリングを排し、毎日夜間自動停止（タスク数 0）と朝の自動起動を行うスケジュールスケーリングを適用。クラウド費用を節約します。
 
-### 11. テスト自動化 (CDK Assertion Tests)
+### 12. テスト自動化 (CDK Assertion Tests)
 *   `aws-cdk-lib/assertions` と Jest を用いた**インフラ単体テスト**を実装。
 *   AWSアカウントにデプロイすることなく、ローカルおよびCI上で「VPC、ALB、WAF、ECSクラスター・サービス、RDSクラスター、S3バケット、CloudFront OAC、KMSキー、Secrets Manager自動ローテーション」が仕様通りに構成されているかを瞬時に検証可能です。
 
-### 12. CI/CD セキュリティゲート (GitHub Actions)
+### 13. CI/CD セキュリティゲート (GitHub Actions)
 *   **Hadolint**: Dockerfile の静的解析を行い、コンテナビルドのベストプラクティスを強制。
 *   **Trivy**: コンテナイメージの脆弱性スキャンを実行し、危険度の高い脆弱性（`HIGH`/`CRITICAL`）を自動検知してデプロイをブロック。
 *   **OSパッケージの自動最新化**: Trivy で検出されたベースイメージ由来の既知の脆弱性を自動解消するため、`Dockerfile` ビルド時に `apk update && apk upgrade` を実行するセキュリティパッチ構造を実装。

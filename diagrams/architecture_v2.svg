@@ -121,6 +121,13 @@
         <text x="42" y="22" font-size="10" font-weight="700" fill="#1d4ed8">IGW</text>
       </g>
 
+      <!-- S3 Gateway Endpoint on VPC Border -->
+      <g transform="translate(732, 545)" filter="url(#shadow)">
+        <circle cx="18" cy="18" r="18" fill="#15803d" />
+        <path d="M 10 18 L 26 18 M 20 12 L 26 18 L 20 24" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" />
+        <text x="42" y="22" font-size="10" font-weight="700" fill="#166534">S3 Endpoint (Gateway)</text>
+      </g>
+
       <!-- AZ Columns Boundaries (Dashed Lines) -->
       <line x1="245" y1="45" x2="245" y2="660" class="az-line" />
       <line x1="495" y1="45" x2="495" y2="660" class="az-line" />
@@ -446,6 +453,18 @@
       <text x="52" y="88" font-size="9" font-weight="600" fill="#e11d48">Port: 6379 (VPC Isolated Subnet)</text>
     </g>
 
+    <!-- ==================== AWS REGION SERVICES (Amazon S3) ==================== -->
+    <g transform="translate(1120, 590)" filter="url(#shadow)">
+      <rect width="270" height="110" class="card" style="stroke: #15803d; stroke-width: 1.5;" />
+      <circle cx="28" cy="45" r="14" fill="#15803d" opacity="0.15" />
+      <path d="M 20 38 L 36 38 L 36 54 A 8 8 0 0 1 20 54 Z" fill="none" stroke="#15803d" stroke-width="2" />
+      <path d="M 20 44 L 36 44 M 20 50 L 36 50" stroke="#15803d" stroke-width="1.5" />
+      <text x="52" y="32" class="card-title" fill="#166534">Amazon S3 (Asset & Log Storage)</text>
+      <text x="52" y="48" class="card-subtitle" font-weight="700">Bucket: app-static-assets</text>
+      <text x="52" y="60" class="card-subtitle">Private Access via OAC / Gateway Endpoint</text>
+      <text x="52" y="76" font-size="9" font-weight="600" fill="#15803d">VPC Gateway Endpoint Route</text>
+    </g>
+
     <!-- ==================== LOG PIPELINE FLOWS ==================== -->
     <!-- ECS Tasks to CloudWatch Logs -->
     <!-- Task A -> CWL -->
@@ -469,5 +488,10 @@
       <text x="25" y="12" class="port-text" font-size="9">TCP :6379</text>
     </g>
     <text x="1090" y="338" text-anchor="end" font-size="9" font-weight="700" fill="#be123c">8. Cache Access</text>
+
+    <!-- 9. ECS Tasks to S3 via S3 Gateway Endpoint -->
+    <path d="M 955 450 L 955 480 L 1055 480 L 1055 625 L 1072 625" class="flow-line-dash" stroke="#15803d" stroke-width="1.5" stroke-dasharray="3 3" />
+    <path d="M 1090 625 L 1120 625" class="flow-line-green" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)" />
+    <text x="1065" y="525" text-anchor="end" font-size="9" fill="#15803d" font-weight="700">9. S3 Access (Private)</text>
   </g>
 </svg>
