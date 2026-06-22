@@ -1,19 +1,57 @@
-# プロジェクト固有の開発ルール
+# AIアシスタント開発ルール・設計思想ガイドライン
 
-## 1. AWS CDK / Infrastructure as Code (IaC)
+このリポジトリで作業するすべてのAIコーディングエージェント（モデルを問わない）は、以下の設計思想および開発プロセス、実装のベストプラクティスを遵守して構築・提案を行わなければならない。
 
-### RDS Proxy 接続許可のベストプラクティス
-- `DatabaseProxy` (RDS Proxy) にはデフォルトポートが定義されていません。
-- Proxy へのアクセス許可（セキュリティグループルール）を定義する際は、`allowDefaultPortFrom()` ではなく、ポートを明示的に指定した `allowFrom()` を使用してください。
-  * 例: `db.proxy.connections.allowFrom(compute.service, cdk.aws_ec2.Port.tcp(3306));`
+---
 
-### CDK Assertions テストの安定化
-- `Match.objectLike` などのアサーションヘルパーは、`Fn::GetAtt` 等の CloudFormation 組み込み関数（オブジェクト値）を含む配列を検証する際に不安定になる場合があります。
-- `Match` ヘルパーで不一致エラーが発生した場合は、`template.findResources('AWS::ECS::TaskDefinition')` 等でプレーンオブジェクトを取得し、Jest の `expect().toContainEqual(...)` や `expect().toHaveProperty(...)` でアサートを行ってください。
+## 1. コア設計思想
 
-## 2. CDK for Terraform (CDKTF)
+### ① 運用の即時性と非破壊性 (Operational Agility)
+- インフラの変更やトラブル対応において、極力「時間のかかる再デプロイ」や「サービス停止」を伴わない手法を優先する。
+- 状態のコントロールは、コントロールプレーン（WAFv2のルールアクション変更、Route 53 のルーティング切り替え等）のAPI更新のみで完結させる設計を検討すること。
 
-### Windows 環境でのインストールエラーの回避
-- Windows 環境で `cdktf-cli` の依存モジュールをインストールする際、`node-pty` のビルドが失敗しインストールが中断することがあります。
-- この現象を回避するため、Windows 環境でローカルインストールする際は、インストールスクリプトを無視するフラグを付与してください：
-  * コマンド: `npm install --ignore-scripts`
+### ② 堅牢性と復旧力 (Resilience & Reliability)
+- 単一障害点（SPOF）を排除し、障害時のフェイルオーバーやDR（災害復旧）を考慮したインフラ構成を設計する。
+- 障害発生時には Blameless Post-Mortem（非難を伴わない振り返り）を前提とし、再発防止策をテストや自動化コードに落とし込める構成にすること。
+
+### ③ セキュリティと最小権限 (Security by Design)
+- 通信経路や実行権限は、必要な最小限に絞り込む（データベース/キャッシュのEgress通信の徹底遮断、コンテナの非Root実行、OIDCを用いたIAMロール連携など）。
+- マルチアカウント環境におけるガバナンスと SCP（Service Control Policy）を考慮し、不正なリージョンやリソースの作成を防ぐ。
+
+### ④ コスト最適化 (FinOps)
+- 開発環境（`dev`）はシングル構成かつ夜間自動停止（ECSスケールダウン・DB一時停止）を適用してコストを徹底的に削減する。
+- NAT Gateway の代わりに VPC ゲートウェイエンドポイント（S3等）を優先使用する。
+- 本番・検証環境は信頼性を優先し、Compute Savings Plans や Reserved Instances を活用した削減シナリオを提示する。
+
+---
+
+## 2. 開発プロセスルール
+
+### ① テスト駆動インフラ (TDI)
+- `infra/lib/` 配下のインフラ定義を変更・追加する際は、必ず `infra/test/stack.test.ts` にテストケースまたはアサーションを追加すること。
+- コード変更完了後、回答をユーザーに返す前に、ローカル環境で必ず `npm test` を実行し、テストが 100% グリーンであることを自律的に確認すること。
+
+### ② 監視とオブザーバビリティのコード化
+- 監視設定（Datadogモニターなど）は、クラウドコンソールでの手動設定を避け、CDKTF 等を用いてコード管理（GitOps）すること。
+
+### ③ 歴史と文脈の引き継ぎ (Context Preservation)
+- 新たにチャットセッションを開始、または別モデルへ移行した際は、まず `docs/walkthrough.md` および `README.md` を読み込んで、これまでの設計上の決定事項と直近の変更履歴を確実に把握すること。
+- 作業完了後は、`docs/walkthrough.md` に実施した変更内容と動作確認結果を明文化して追記すること。
+
+---
+
+## 3. 実装上のベストプラクティス ＆ トラブルシューティング
+
+### ① AWS CDK (TypeScript)
+- **RDS Proxy 接続許可の定義**:
+  - `DatabaseProxy` (RDS Proxy) にはデフォルトポートが定義されていないため、Proxy へのアクセス許可（セキュリティグループルール）を定義する際は、`allowDefaultPortFrom()` ではなく、ポートを明示的に指定した `allowFrom()` を使用すること。
+    * 例: `db.proxy.connections.allowFrom(compute.service, cdk.aws_ec2.Port.tcp(3306));`
+- **CDK Assertions テストの安定化**:
+  - `Match.objectLike` などのアサーションヘルパーは、`Fn::GetAtt` 等の CloudFormation 組み込み関数（オブジェクト値）を含む配列を検証する際に不安定になる場合がある。
+  - `Match` ヘルパーで不一致エラーが発生した場合は、`template.findResources('AWS::ECS::TaskDefinition')` 等でプレーンオブジェクトを取得し、Jest の `expect().toContainEqual(...)` や `expect().toHaveProperty(...)` でアサートを行うこと。
+
+### ② CDK for Terraform (CDKTF)
+- **Windows 環境でのインストールエラーの回避**:
+  - Windows 環境で `cdktf-cli` の依存モジュールをインストールする際、`node-pty` のビルドが失敗しインストールが中断することがある。
+  - この現象を回避するため、Windows 環境でローカルインストールする際は、インストールスクリプトを無視するフラグを付与すること：
+    * コマンド: `npm install --ignore-scripts`
