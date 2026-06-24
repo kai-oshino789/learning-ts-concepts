@@ -11,11 +11,7 @@
 採用担当者や閲覧者が今すぐブラウザで体験できるように、GitHub Pages で公開されています。
 
 * 🌐 **[総合ポートフォリオ・ポータル (Launcher)](https://shadow-architect-dev.github.io/learning-ts-concepts/app/)**
-  - ゲームやツールを起動するための統合ポータル（目次）画面です。ガラスモーフィズム (Glassmorphism) なネオンデザインで構築されています。
-* 🎮 **[Neon Tetris デモ直リンク](https://shadow-architect-dev.github.io/learning-ts-concepts/app/tetris/)**
-  - ポータルから直接起動可能なネオンカラーのテトリスゲームです。
-* ⚫⚪ **[Neon Othello デモ直リンク (AI対戦機能付き)](https://shadow-architect-dev.github.io/learning-ts-concepts/app/othello/)**
-  - 【新規】ブラウザ動作の思考ルーチンAIを搭載したネオンオセロです。
+  - ゲームやツールを起動するための統合ポータル（目次）画面です。ガラスモーフィズム (Glassmorphism) なネオンデザインで構築されています。各ゲーム（テトリス、AI対戦オセロ）はこのポータルから直接起動してプレイ可能です。
 
 ---
 
