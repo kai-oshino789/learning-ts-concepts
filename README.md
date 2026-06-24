@@ -2,10 +2,11 @@
 
 このリポジトリは、TypeScript と AWS CDK を用いて、**セキュリティ**・**可観測性（Observability）**・**テスト自動化**・**CI/CD品質ゲート**を統合した、プロダクションレディな学習用三層アーキテクチャテンプレートです。
 
-また、フロントエンドのポートフォリオ実演として、複数のゲームやツールを起動できる「インタラクティブ・アプリランチャー（ポータル）」と、そのデモゲーム（テトリス）を同梱しています。
+また、フロントエンドのポートフォリオ実演として、複数のゲームやツールを起動できる「インタラクティブ・アプリランチャー（ポータル）」と、そのデモゲーム（テトリス、AI対戦オセロ）を同梱しています。
 
 🌐 **[今すぐポータル画面を開く (GitHub Pages デモ)](https://shadow-architect-dev.github.io/learning-ts-concepts/app/)**
 🎮 **[テトリスを直接プレイする (デモ直リンク)](https://shadow-architect-dev.github.io/learning-ts-concepts/app/tetris/)**
+⚫⚪ **[オセロを直接プレイする (デモ直リンク)](https://shadow-architect-dev.github.io/learning-ts-concepts/app/othello/)**
 
 ---
 

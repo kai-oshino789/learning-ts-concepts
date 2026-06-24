@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON OTHELLO - AI Portfolio Edition</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff0055;
+            --neon-purple: #bd00ff;
+            --neon-blue: #0088ff;
+            --bg-dark: #0a0b10;
+            --panel-bg: rgba(20, 22, 37, 0.6);
+            --border-glow: rgba(0, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(189, 0, 255, 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 255, 255, 0.15) 0, transparent 50%);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-blue);
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* Game Layout Container */
+        .game-wrapper {
+            display: flex;
+            gap: 25px;
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px var(--border-glow);
+            max-width: 95vw;
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 140px;
+        }
+
+        .box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.05);
+        }
+
+        .box:last-child {
+            margin-bottom: 0;
+        }
+
+        .box-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #a0aec0;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin: 10px 0;
+        }
+
+        .disc-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .disc-icon.cyan {
+            background: var(--neon-cyan);
+            box-shadow: 0 0 8px var(--neon-cyan);
+        }
+
+        .disc-icon.pink {
+            background: var(--neon-pink);
+            box-shadow: 0 0 8px var(--neon-pink);
+        }
+
+        .score-val {
+            font-size: 1.6rem;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        /* Status & Config Controls */
+        .status-message {
+            font-size: 0.9rem;
+            font-weight: bold;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e2e8f0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 15px;
+        }
+
+        .status-message.thinking {
+            color: var(--neon-pink);
+            animation: pulse 1.5s infinite;
+        }
+
+        select {
+            background: #1a202c;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-restart {
+            background: transparent;
+            border: 2px solid var(--neon-cyan);
+            color: white;
+            font-weight: bold;
+            padding: 10px 0;
+            width: 100%;
+            border-radius: 30px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+
+        .btn-restart:hover {
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        /* Othello Grid Board */
+        .board-container {
+            position: relative;
+            background: #0d0f1a;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 55px);
+            grid-template-rows: repeat(8, 55px);
+            gap: 4px;
+            background: rgba(189, 0, 255, 0.1); /* Subtle grid divider lines */
+        }
+
+        .cell {
+            background: #121424;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s ease;
+        }
+
+        .cell:hover {
+            background: #171b30;
+        }
+
+        /* Movable Helper Dot */
+        .cell.valid-move::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            opacity: 0.3;
+            box-shadow: 0 0 8px var(--neon-cyan);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .cell.valid-move:hover::after {
+            opacity: 0.8;
+            transform: scale(1.3);
+        }
+
+        /* 3D Flip Disk Styles */
+        .disc-container {
+            width: 82%;
+            height: 82%;
+            perspective: 800px;
+        }
+
+        .disc {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 50%;
+        }
+
+        .disc.player {
+            transform: rotateY(0deg);
+        }
+
+        .disc.ai {
+            transform: rotateY(180deg);
+        }
+
+        .disc-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            backface-visibility: hidden;
+        }
+
+        .disc-face.front {
+            /* Player: Neon Cyan */
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, var(--neon-cyan) 60%, #006666 100%);
+            box-shadow: 0 0 15px var(--neon-cyan), inset 0 0 8px rgba(255,255,255,0.6);
+        }
+
+        .disc-face.back {
+            /* AI: Neon Pink */
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, var(--neon-pink) 60%, #660022 100%);
+            box-shadow: 0 0 15px var(--neon-pink), inset 0 0 8px rgba(255,255,255,0.6);
+            transform: rotateY(180deg);
+        }
+
+        /* Overlay modals */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 11, 16, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            border-radius: 9px;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .overlay-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .overlay-desc {
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            font-family: monospace;
+            color: #a0aec0;
+        }
+
+        .btn-link {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: #718096;
+            text-decoration: none;
+            border-bottom: 1px dashed #4a5568;
+            transition: color 0.2s ease;
+        }
+
+        .btn-link:hover {
+            color: var(--neon-cyan);
+            border-bottom-color: var(--neon-cyan);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
+        /* Responsive Layout Settings */
+        @media (max-width: 600px) {
+            .game-wrapper {
+                flex-direction: column;
+                align-items: center;
+                padding: 15px;
+            }
+            .side-panel {
+                flex-direction: row;
+                width: 100%;
+                gap: 10px;
+            }
+            .box {
+                margin-bottom: 0;
+                flex: 1;
+            }
+            .board {
+                grid-template-columns: repeat(8, 42px);
+                grid-template-rows: repeat(8, 42px);
+                gap: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Neon Othello</h1>
+    <div class="subtitle">HTML5 CSS3 3D-Flip / Minimax AI / Sound Synthesis</div>
+
+    <div class="game-wrapper">
+        <!-- Left Panel: Score and Status -->
+        <div class="side-panel">
+            <div class="box">
+                <div class="box-title">Score</div>
+                <div class="score-row">
+                    <div class="disc-icon cyan"></div>
+                    <div id="scorePlayer" class="score-val">2</div>
+                </div>
+                <div class="score-row">
+                    <div class="disc-icon pink"></div>
+                    <div id="scoreAI" class="score-val">2</div>
+                </div>
+            </div>
+            
+            <div class="box">
+                <div class="box-title">Difficulty</div>
+                <select id="difficultySelect">
+                    <option value="easy">Easy (Lv 1)</option>
+                    <option value="normal" selected>Normal (Lv 2)</option>
+                    <option value="hard">Hard (Lv 3)</option>
+                </select>
+            </div>
+
+            <button id="restartBtn" class="btn-restart">New Game</button>
+        </div>
+
+        <!-- Center: Game Board Matrix -->
+        <div class="board-container">
+            <div id="boardGrid" class="board">
+                <!-- Cells will be generated dynamically by JS -->
+            </div>
+
+            <!-- Game Over End State Overlay -->
+            <div id="endOverlay" class="overlay hidden">
+                <div id="endTitle" class="overlay-title">You Win</div>
+                <div id="endResult" class="overlay-desc">Cyan: 32 | Pink: 32</div>
+                <button id="overlayPlayBtn" class="btn-restart" style="max-width: 180px;">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <a href="../" class="btn-link">← Back to Launcher Portal</a>
+
+    <script>
+        // Sound Engine using Web Audio API (Synthesizing sounds on the fly)
+        class AudioSynthesizer {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playDiskPlace() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+
+                osc.start();
+                osc.stop(now + 0.08);
+            }
+
+            playFlipBatch() {
+                if (!this.ctx) return;
+                // Double soft click simulation for rotation feeling
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(280, now);
+                osc.frequency.linearRampToValueAtTime(320, now + 0.1);
+
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+
+                osc.start();
+                osc.stop(now + 0.1);
+            }
+
+            playEndGame(playerWon) {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sine';
+                if (playerWon) {
+                    // Ascending chord
+                    osc.frequency.setValueAtTime(330, now);
+                    osc.frequency.setValueAtTime(440, now + 0.15);
+                    osc.frequency.setValueAtTime(554, now + 0.3);
+                    osc.frequency.exponentialRampToValueAtTime(660, now + 0.6);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                } else {
+                    // Descending sad chord
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(200, now + 0.15);
+                    osc.frequency.setValueAtTime(165, now + 0.3);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.6);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                }
+
+                osc.start();
+                osc.stop(now + 0.6);
+            }
+        }
+
+        const sound = new AudioSynthesizer();
+
+        // Game Configuration
+        const BOARD_SIZE = 8;
+        const EMPTY = 0;
+        const PLAYER = 1; // Cyan
+        const AI = 2;     // Pink
+
+        // Grid Weight Maps for AI strategy (FISC standard heuristic matrix)
+        const WEIGHTS = [
+            [ 100, -20,  10,   5,   5,  10, -20, 100],
+            [ -20, -50,  -2,  -2,  -2,  -2, -50, -20],
+            [  10,  -2,   5,   1,   1,   5,  -2,  10],
+            [   5,  -2,   1,   1,   1,   1,  -2,   5],
+            [   5,  -2,   1,   1,   1,   1,  -2,   5],
+            [  10,  -2,   5,   1,   1,   5,  -2,  10],
+            [ -20, -50,  -2,  -2,  -2,  -2, -50, -20],
+            [ 100, -20,  10,   5,   5,  10, -20, 100]
+        ];
+
+        let board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+        let turn = PLAYER;
+        let isThinking = false;
+        let validMoves = [];
+
+        // Directions vectors for checking board lines
+        const DIRS = [
+            [-1, -1], [-1, 0], [-1, 1],
+            [ 0, -1],          [ 0, 1],
+            [ 1, -1], [ 1, 0], [ 1, 1]
+        ];
+
+        // UI Nodes
+        const boardGrid = document.getElementById('boardGrid');
+        const scorePlayerVal = document.getElementById('scorePlayer');
+        const scoreAIVal = document.getElementById('scoreAI');
+        const difficultySelect = document.getElementById('difficultySelect');
+        const restartBtn = document.getElementById('restartBtn');
+        const endOverlay = document.getElementById('endOverlay');
+        const endTitle = document.getElementById('endTitle');
+        const endResult = document.getElementById('endResult');
+        const overlayPlayBtn = document.getElementById('overlayPlayBtn');
+
+        // Create Grid Cells in DOM
+        function initGrid() {
+            boardGrid.innerHTML = '';
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    
+                    cell.addEventListener('click', () => handleCellClick(r, c));
+                    boardGrid.appendChild(cell);
+                }
+            }
+        }
+
+        // Logic check: Can place disk?
+        function isValidMove(boardState, r, c, color) {
+            if (boardState[r][c] !== EMPTY) return false;
+
+            const opponent = color === PLAYER ? AI : PLAYER;
+            let canPlace = false;
+
+            for (const [dr, dc] of DIRS) {
+                let nr = r + dr;
+                let nc = c + dc;
+                let foundOpponent = false;
+
+                while (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+                    const currentVal = boardState[nr][nc];
+
+                    if (currentVal === opponent) {
+                        foundOpponent = true;
+                    } else if (currentVal === color) {
+                        if (foundOpponent) {
+                            canPlace = true;
+                        }
+                        break;
+                    } else {
+                        break;
+                    }
+
+                    nr += dr;
+                    nc += dc;
+                }
+            }
+
+            return canPlace;
+        }
+
+        // Get list of valid coordinates
+        function getValidMoves(boardState, color) {
+            const moves = [];
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (isValidMove(boardState, r, c, color)) {
+                        moves.push({ r, c });
+                    }
+                }
+            }
+            return moves;
+        }
+
+        // Place disk and flip opponents
+        function makeMove(boardState, r, c, color) {
+            boardState[r][c] = color;
+            const opponent = color === PLAYER ? AI : PLAYER;
+            const flips = [];
+
+            for (const [dr, dc] of DIRS) {
+                let nr = r + dr;
+                let nc = c + dc;
+                const path = [];
+
+                while (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+                    const currentVal = boardState[nr][nc];
+
+                    if (currentVal === opponent) {
+                        path.push({ r: nr, c: nc });
+                    } else if (currentVal === color) {
+                        if (path.length > 0) {
+                            flips.push(...path);
+                        }
+                        break;
+                    } else {
+                        break;
+                    }
+
+                    nr += dr;
+                    nc += dc;
+                }
+            }
+
+            flips.forEach(pos => {
+                boardState[pos.r][pos.c] = color;
+            });
+
+            return flips; // Return flipped positions for animation triggers
+        }
+
+        // DOM Rendering Update
+        function updateBoardUI(flips = []) {
+            // Count pieces
+            let pCount = 0;
+            let aiCount = 0;
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = boardGrid.children[r * BOARD_SIZE + c];
+                    const val = board[r][c];
+
+                    // Remove helpers
+                    cell.classList.remove('valid-move');
+
+                    const existingDisc = cell.querySelector('.disc');
+
+                    if (val === EMPTY) {
+                        if (existingDisc) cell.removeChild(existingDisc);
+                    } else {
+                        const typeClass = val === PLAYER ? 'player' : 'ai';
+                        
+                        if (!existingDisc) {
+                            // Create disk structure
+                            const container = document.createElement('div');
+                            container.className = 'disc-container';
+                            const disc = document.createElement('div');
+                            disc.className = `disc ${typeClass}`;
+                            
+                            const front = document.createElement('div');
+                            front.className = 'disc-face front';
+                            const back = document.createElement('div');
+                            back.className = 'disc-face back';
+
+                            disc.appendChild(front);
+                            disc.appendChild(back);
+                            container.appendChild(disc);
+                            cell.appendChild(container);
+                        } else {
+                            // Flip class update trigger CSS Transition
+                            const disc = existingDisc.querySelector('.disc');
+                            if (disc && !disc.classList.contains(typeClass)) {
+                                disc.className = `disc ${typeClass}`;
+                            }
+                        }
+
+                        if (val === PLAYER) pCount++;
+                        if (val === AI) aiCount++;
+                    }
+                }
+            }
+
+            // Draw available moves if it is user's turn
+            if (turn === PLAYER && !isThinking) {
+                validMoves.forEach(mv => {
+                    const cell = boardGrid.children[mv.r * BOARD_SIZE + mv.c];
+                    cell.classList.add('valid-move');
+                });
+            }
+
+            // Scores update
+            scorePlayerVal.innerText = pCount;
+            scoreAIVal.innerText = aiCount;
+        }
+
+        // ==========================================
+        // AI MINIMAX ALGORITHM
+        // ==========================================
+
+        function evaluateBoard(boardState) {
+            let score = 0;
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (boardState[r][c] === AI) {
+                        score += WEIGHTS[r][c];
+                    } else if (boardState[r][c] === PLAYER) {
+                        score -= WEIGHTS[r][c];
+                    }
+                }
+            }
+            return score;
+        }
+
+        // Minimax with Alpha-Beta Pruning
+        function minimax(boardState, depth, alpha, beta, isMaximizing) {
+            const myTurn = isMaximizing ? AI : PLAYER;
+            const moves = getValidMoves(boardState, myTurn);
+
+            // Base cases: Depth reached or game over for subtree
+            if (depth === 0 || moves.length === 0) {
+                return { score: evaluateBoard(boardState), move: null };
+            }
+
+            let bestMove = null;
+
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (const move of moves) {
+                    // Clone board
+                    const tempBoard = boardState.map(row => [...row]);
+                    makeMove(tempBoard, move.r, move.c, AI);
+                    const evaluation = minimax(tempBoard, depth - 1, alpha, beta, false).score;
+
+                    if (evaluation > maxEval) {
+                        maxEval = evaluation;
+                        bestMove = move;
+                    }
+                    alpha = Math.max(alpha, evaluation);
+                    if (beta <= alpha) break; // Beta cut-off
+                }
+                return { score: maxEval, move: bestMove };
+            } else {
+                let minEval = Infinity;
+                for (const move of moves) {
+                    const tempBoard = boardState.map(row => [...row]);
+                    makeMove(tempBoard, move.r, move.c, PLAYER);
+                    const evaluation = minimax(tempBoard, depth - 1, alpha, beta, true).score;
+
+                    if (evaluation < minEval) {
+                        minEval = evaluation;
+                        bestMove = move;
+                    }
+                    beta = Math.min(beta, evaluation);
+                    if (beta <= alpha) break; // Alpha cut-off
+                }
+                return { score: minEval, move: bestMove };
+            }
+        }
+
+        // Execute AI Turn action
+        function triggerAILogic() {
+            isThinking = true;
+            validMoves = [];
+            updateBoardUI();
+
+            const difficulty = difficultySelect.value;
+            let depth = 3; // default Normal
+            
+            if (difficulty === 'easy') depth = 1;
+            if (difficulty === 'hard') depth = 5;
+
+            // Wait a moment so AI feels natural
+            setTimeout(() => {
+                const aiMoves = getValidMoves(board, AI);
+
+                if (aiMoves.length > 0) {
+                    let chosenMove;
+
+                    if (difficulty === 'easy') {
+                        // Easy: evaluation only, no future search
+                        const result = minimax(board, 1, -Infinity, Infinity, true);
+                        chosenMove = result.move;
+                    } else {
+                        // Minimax with Alpha-Beta
+                        const result = minimax(board, depth, -Infinity, Infinity, true);
+                        chosenMove = result.move;
+                    }
+
+                    if (chosenMove) {
+                        const flips = makeMove(board, chosenMove.r, chosenMove.c, AI);
+                        sound.playDiskPlace();
+                        if (flips.length > 0) {
+                            setTimeout(() => sound.playFlipBatch(), 100);
+                        }
+                    }
+                }
+
+                // Switch back turn
+                turn = PLAYER;
+                isThinking = false;
+                
+                checkTurnTransitions();
+            }, 800 + Math.random() * 400); // 0.8s to 1.2s delay
+        }
+
+        // Handle clicks on grid cell
+        function handleCellClick(r, c) {
+            if (turn !== PLAYER || isThinking || gameOver) return;
+
+            sound.init(); // Init Web Audio Context
+
+            if (isValidMove(board, r, c, PLAYER)) {
+                const flips = makeMove(board, r, c, PLAYER);
+                sound.playDiskPlace();
+                
+                if (flips.length > 0) {
+                    setTimeout(() => sound.playFlipBatch(), 100);
+                }
+
+                turn = AI;
+                checkTurnTransitions();
+            }
+        }
+
+        // Core Game state transitions and turns loop
+        function checkTurnTransitions() {
+            // Check moves availability
+            const playerMoves = getValidMoves(board, PLAYER);
+            const aiMoves = getValidMoves(board, AI);
+
+            // Double pass logic (End state)
+            if (playerMoves.length === 0 && aiMoves.length === 0) {
+                endGame();
+                return;
+            }
+
+            // Normal turn processing
+            if (turn === PLAYER) {
+                if (playerMoves.length === 0) {
+                    // Player pass
+                    turn = AI;
+                    triggerAILogic();
+                } else {
+                    validMoves = playerMoves;
+                    updateBoardUI();
+                }
+            } else if (turn === AI) {
+                if (aiMoves.length === 0) {
+                    // AI pass
+                    turn = PLAYER;
+                    validMoves = playerMoves;
+                    updateBoardUI();
+                } else {
+                    triggerAILogic();
+                }
+            }
+        }
+
+        // Reset game status
+        function startNewGame() {
+            sound.init();
+            endOverlay.classList.add('hidden');
+            
+            // Clean board
+            board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+            
+            // Start default center layout
+            board[3][3] = AI;
+            board[3][4] = PLAYER;
+            board[4][3] = PLAYER;
+            board[4][4] = AI;
+
+            turn = PLAYER;
+            isThinking = false;
+            validMoves = getValidMoves(board, PLAYER);
+            gameOver = false;
+
+            updateBoardUI();
+        }
+
+        // Game Over evaluation
+        function endGame() {
+            gameOver = true;
+            let pCount = 0;
+            let aiCount = 0;
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] === PLAYER) pCount++;
+                    if (board[r][c] === AI) aiCount++;
+                }
+            }
+
+            // Display results
+            endResult.innerText = `Cyan: ${pCount} | Pink: ${aiCount}`;
+
+            if (pCount > aiCount) {
+                endTitle.innerText = "You Win!";
+                endTitle.style.color = "var(--neon-cyan)";
+                endTitle.style.textShadow = "0 0 10px var(--neon-cyan)";
+                sound.playEndGame(true);
+            } else if (pCount < aiCount) {
+                endTitle.innerText = "AI Wins!";
+                endTitle.style.color = "var(--neon-pink)";
+                endTitle.style.textShadow = "0 0 10px var(--neon-pink)";
+                sound.playEndGame(false);
+            } else {
+                endTitle.innerText = "Draw Match";
+                endTitle.style.color = "#ffffff";
+                endTitle.style.textShadow = "none";
+                sound.playEndGame(true);
+            }
+
+            endOverlay.classList.remove('hidden');
+        }
+
+        // Listeners
+        restartBtn.addEventListener('click', startNewGame);
+        overlayPlayBtn.addEventListener('click', startNewGame);
+        difficultySelect.addEventListener('change', startNewGame);
+
+        // Run
+        initGrid();
+        startNewGame();
+
+    </script>
+</body>
+</html>
