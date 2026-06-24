@@ -647,14 +647,14 @@
                     // Remove helpers
                     cell.classList.remove('valid-move');
 
-                    const existingDisc = cell.querySelector('.disc');
+                    const existingContainer = cell.querySelector('.disc-container');
 
                     if (val === EMPTY) {
-                        if (existingDisc) cell.removeChild(existingDisc);
+                        if (existingContainer) cell.removeChild(existingContainer);
                     } else {
                         const typeClass = val === PLAYER ? 'player' : 'ai';
                         
-                        if (!existingDisc) {
+                        if (!existingContainer) {
                             // Create disk structure
                             const container = document.createElement('div');
                             container.className = 'disc-container';
@@ -672,7 +672,7 @@
                             cell.appendChild(container);
                         } else {
                             // Flip class update trigger CSS Transition
-                            const disc = existingDisc.querySelector('.disc');
+                            const disc = existingContainer.querySelector('.disc');
                             if (disc && !disc.classList.contains(typeClass)) {
                                 disc.className = `disc ${typeClass}`;
                             }
