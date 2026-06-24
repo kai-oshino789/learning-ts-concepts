@@ -1,8 +1,10 @@
-# learning-ts-concepts (AWS CDK 3-Tier Architecture Template)
+# learning-ts-concepts (AWS CDK 3-Tier Architecture Template & Frontend Demo)
 
 このリポジトリは、TypeScript と AWS CDK を用いて、**セキュリティ**・**可観測性（Observability）**・**テスト自動化**・**CI/CD品質ゲート**を統合した、プロダクションレディな学習用三層アーキテクチャテンプレートです。
 
-ポートフォリオとして、実用的なSREおよびクラウドインフラの設計プラクティスを網羅しています。
+また、フロントエンドのポートフォリオ実演として、HTML5 Canvas と Web Audio API で実装したインタラクティブなゲームデモを同梱しています。
+
+🎮 **[ブラウザで今すぐテトリスを動かす (GitHub Pages デモ)](https://shadow-architect-dev.github.io/learning-ts-concepts/app/)**
 
 ---
 
