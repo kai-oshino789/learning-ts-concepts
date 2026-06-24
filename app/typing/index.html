@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODING TYPER - Dev Portfolio Edition</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff0055;
+            --neon-blue: #0088ff;
+            --neon-yellow: #ffcc00;
+            --bg-dark: #0a0b10;
+            --panel-bg: rgba(20, 22, 37, 0.6);
+            --border-glow: rgba(0, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(189, 0, 255, 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 255, 255, 0.15) 0, transparent 50%);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-blue);
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        /* Layout Main Box */
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px var(--border-glow);
+            width: 100%;
+            max-width: 650px;
+            position: relative;
+        }
+
+        /* Score Dashboard Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: inset 0 0 8px rgba(0, 255, 255, 0.03);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #a0aec0;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .stat-val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
+        }
+
+        /* Time progress bar */
+        .timer-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-blue));
+            box-shadow: 0 0 8px var(--neon-cyan);
+            transition: width 0.1s linear;
+        }
+
+        /* Typing Arena Box */
+        .type-arena {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .word-display {
+            font-size: 2.2rem;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        /* Word highlighting */
+        .char-typed {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .char-current {
+            color: #ffffff;
+            border-bottom: 3px solid var(--neon-pink);
+            background: rgba(255, 0, 85, 0.15);
+            animation: blink 1s infinite;
+        }
+
+        .char-remaining {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .word-meaning {
+            font-size: 0.95rem;
+            color: #718096;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        .keyboard-tip {
+            font-size: 0.8rem;
+            color: #4a5568;
+            margin-top: 15px;
+            font-family: monospace;
+        }
+
+        /* Virtual Key Display for hint */
+        .key-hint {
+            display: inline-block;
+            background: #2d3748;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 1rem;
+            border-bottom: 2px solid #1a202c;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 5px var(--neon-cyan);
+            margin: 5px 0;
+        }
+
+        /* Game State Overlays */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 11, 16, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .overlay-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .btn-start {
+            background: transparent;
+            border: 2px solid var(--neon-cyan);
+            color: white;
+            font-weight: bold;
+            padding: 12px 35px;
+            border-radius: 30px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            font-size: 1rem;
+        }
+
+        .btn-start:hover {
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 25px var(--neon-cyan);
+        }
+
+        /* Results table styling */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 80%;
+            max-width: 400px;
+            margin-bottom: 25px;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-bottom: 3px;
+        }
+
+        .result-val {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            font-family: monospace;
+        }
+
+        .rank-banner {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--neon-pink);
+            text-shadow: 0 0 20px var(--neon-pink);
+            margin: 5px 0 20px 0;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        .btn-link {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: #718096;
+            text-decoration: none;
+            border-bottom: 1px dashed #4a5568;
+            transition: color 0.2s ease;
+        }
+
+        .btn-link:hover {
+            color: var(--neon-cyan);
+            border-bottom-color: var(--neon-cyan);
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        @media (max-width: 600px) {
+            .game-wrapper {
+                padding: 20px 15px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .word-display {
+                font-size: 1.6rem;
+            }
+            .overlay-title {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Coding Typer</h1>
+    <div class="subtitle">HTML5 CSS3 / Sound Synthesis / Dev Word Typing Portfolio</div>
+
+    <div class="game-wrapper">
+        <!-- Stats Dashboard -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">WPM</div>
+                <div id="wpmVal" class="stat-val">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Accuracy</div>
+                <div id="accuracyVal" class="stat-val">100%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Correct Keys</div>
+                <div id="keysVal" class="stat-val">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Time Left</div>
+                <div id="timeVal" class="stat-val">60s</div>
+            </div>
+        </div>
+
+        <!-- Timer bar -->
+        <div class="timer-container">
+            <div id="timerBar" class="timer-bar"></div>
+        </div>
+
+        <!-- Typing Arena -->
+        <div class="type-arena">
+            <div id="wordDisplay" class="word-display">
+                <!-- Text with highlights will be inserted dynamically -->
+                PRESS START
+            </div>
+            <div id="wordMeaning" class="word-meaning">プログラミング単語を打ち込め</div>
+            <div id="keyTipContainer" class="keyboard-tip" style="visibility: hidden;">
+                Next Key: <span id="nextKeyHint" class="key-hint">A</span>
+            </div>
+        </div>
+
+        <!-- Start Overlay -->
+        <div id="startOverlay" class="overlay">
+            <div class="overlay-title">Ready to Code?</div>
+            <div style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 25px; text-align: center; max-width: 400px; line-height: 1.6;">
+                プログラミングの予約語、AWSリソース名、インフラ用語が出題される制限時間60秒のタイピングゲームです。
+            </div>
+            <button id="startBtn" class="btn-start">Start Game</button>
+        </div>
+
+        <!-- Game Over / Result Overlay -->
+        <div id="resultOverlay" class="overlay hidden">
+            <div class="overlay-title" style="text-shadow: 0 0 10px var(--neon-pink);">Performance Result</div>
+            <div id="rankBanner" class="rank-banner">A</div>
+            
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-label">WPM (速度)</div>
+                    <div id="resultWpm" class="result-val">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Accuracy (正確率)</div>
+                    <div id="resultAccuracy" class="result-val">100%</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Correct Keys</div>
+                    <div id="resultKeys" class="result-val">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Missed Keys</div>
+                    <div id="resultMissed" class="result-val">0</div>
+                </div>
+            </div>
+
+            <button id="restartBtn" class="btn-start" style="border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 85, 0.2);">Try Again</button>
+        </div>
+    </div>
+
+    <a href="../" class="btn-link">← Back to Launcher Portal</a>
+
+    <script>
+        // Web Audio API Audio System
+        class KeyboardAudio {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playKeyStroke() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                
+                // Clicking sound (Simulating Mechanical switch)
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.03);
+
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.03);
+
+                osc.start();
+                osc.stop(now + 0.03);
+            }
+
+            playError() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(130, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.15);
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+                osc.start();
+                osc.stop(now + 0.15);
+            }
+
+            playWordCleared() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                
+                const osc1 = this.ctx.createOscillator();
+                const osc2 = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(523.25, now); // C5
+                osc1.frequency.setValueAtTime(659.25, now + 0.08); // E5
+
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(783.99, now); // G5
+                osc2.frequency.setValueAtTime(1046.50, now + 0.08); // C6
+
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                osc1.start();
+                osc2.start();
+                osc1.stop(now + 0.25);
+                osc2.stop(now + 0.25);
+            }
+
+            playFanfare() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+                
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                    
+                    gain.gain.setValueAtTime(0.1, now + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+
+                    osc.start(now + i * 0.1);
+                    osc.stop(now + i * 0.1 + 0.3);
+                });
+            }
+        }
+
+        const sound = new KeyboardAudio();
+
+        // Target Word List Database (Dev Theme)
+        const WORD_LIST = [
+            { word: "const", meaning: "定数を定義するキーワード" },
+            { word: "function", meaning: "関数を宣言するキーワード" },
+            { word: "interface", meaning: "型の構造を定義するインターフェース" },
+            { word: "typescript", meaning: "Microsoftが開発した静的型付け言語" },
+            { word: "async_await", meaning: "非同期処理を同期処理のように記述する構文" },
+            { word: "promise", meaning: "非同期処理の結果を表すオブジェクト" },
+            { word: "constructor", meaning: "クラスインスタンス初期化用のコンストラクタ" },
+            { word: "import_export", meaning: "モジュール間で機能を共有する構文" },
+            { word: "aws_s3_bucket", meaning: "AWSが提供するオブジェクトストレージクラス" },
+            { word: "ecs_fargate", meaning: "サーバーレスなコンテナ実行環境" },
+            { word: "load_balancer", meaning: "トラフィックを複数のサーバーに分散する装置" },
+            { word: "security_group", meaning: "インスタンスレベルの仮想ファイアウォール" },
+            { word: "autoscaling", meaning: "負荷に応じてノードやタスクを増減させる機能" },
+            { word: "observability", meaning: "システム全体の健康状態をログやトレースで可視化する概念" },
+            { word: "ci_cd_pipeline", meaning: "ビルド・テスト・デプロイを自動化するライン" },
+            { word: "github_actions", meaning: "GitHub上でCI/CDを構築できるワークフロー自動化ツール" },
+            { word: "terraform", meaning: "Infrastructure as Codeを実現するオープンソースツール" },
+            { word: "kubernetes", meaning: "コンテナを統合管理するオープンソースのオーケストレーター" },
+            { word: "dockers", meaning: "コンテナ型仮想化のデファクトプラットフォーム" },
+            { word: "kinesis_firehose", meaning: "大量のストリーミングデータを直接保管先にロードするサービス" },
+            { word: "dynamodb", meaning: "AWSが提供する高速なフルマネージドNoSQLデータベース" },
+            { word: "aurora_serverless", meaning: "自動スケーリングに対応したクラウド向けリレーショナルデータベース" },
+            { word: "microservices", meaning: "アプリケーションを小さな個別サービスの集合として設計する手法" },
+            { word: "serverless", meaning: "サーバー管理を意識せずにコードを実行するサーバーレス設計" },
+            { word: "monitoring", meaning: "システムの稼働ステータスやメトリクスを収集・監視すること" }
+        ];
+
+        // Game State Variables
+        let score = 0;
+        let correctKeys = 0;
+        let missedKeys = 0;
+        let timeLeft = 60;
+        let isPlaying = false;
+        let currentWordIndex = 0;
+        let typedCharCount = 0; // matching char within current word
+        let timer = null;
+
+        // UI Element Nodes
+        const wordDisplay = document.getElementById('wordDisplay');
+        const wordMeaning = document.getElementById('wordMeaning');
+        const nextKeyHint = document.getElementById('nextKeyHint');
+        const keyTipContainer = document.getElementById('keyTipContainer');
+        const wpmVal = document.getElementById('wpmVal');
+        const accuracyVal = document.getElementById('accuracyVal');
+        const keysVal = document.getElementById('keysVal');
+        const timeVal = document.getElementById('timeVal');
+        const timerBar = document.getElementById('timerBar');
+
+        const startOverlay = document.getElementById('startOverlay');
+        const resultOverlay = document.getElementById('resultOverlay');
+        const rankBanner = document.getElementById('rankBanner');
+        const resultWpm = document.getElementById('resultWpm');
+        const resultAccuracy = document.getElementById('resultAccuracy');
+        const resultKeys = document.getElementById('resultKeys');
+        const resultMissed = document.getElementById('resultMissed');
+
+        // Choose and shuffle next word
+        let currentWordsQueue = [];
+
+        function initQueue() {
+            // Shuffle
+            currentWordsQueue = [...WORD_LIST].sort(() => Math.random() - 0.5);
+            currentWordIndex = 0;
+        }
+
+        function getNextWord() {
+            if (currentWordIndex >= currentWordsQueue.length) {
+                initQueue();
+            }
+            const active = currentWordsQueue[currentWordIndex];
+            currentWordIndex++;
+            typedCharCount = 0;
+            return active;
+        }
+
+        let activeWordObj = null;
+
+        // Render target word into span characters
+        function renderWord() {
+            const word = activeWordObj.word;
+            let htmlStr = "";
+            for (let i = 0; i < word.length; i++) {
+                let char = word[i];
+                if (char === "_") char = "_"; // display underscore explicitly
+                
+                if (i < typedCharCount) {
+                    htmlStr += `<span class="char-typed">${char}</span>`;
+                } else if (i === typedCharCount) {
+                    htmlStr += `<span class="char-current">${char}</span>`;
+                } else {
+                    htmlStr += `<span class="char-remaining">${char}</span>`;
+                }
+            }
+            wordDisplay.innerHTML = htmlStr;
+            wordMeaning.innerText = activeWordObj.meaning;
+            
+            // Render next key hint
+            const nextKey = word[typedCharCount];
+            nextKeyHint.innerText = nextKey === "_" ? "_" : nextKey.toUpperCase();
+        }
+
+        // Stats calculation
+        function calculateStats() {
+            const elapsed = 60 - timeLeft;
+            const minutes = elapsed > 0 ? elapsed / 60 : 1 / 60;
+            
+            // WPM = (Total Correct Keys / 5) / elapsed minutes
+            const wpm = Math.round((correctKeys / 5) / minutes);
+            wpmVal.innerText = wpm;
+
+            const totalKeys = correctKeys + missedKeys;
+            const accuracy = totalKeys > 0 ? Math.round((correctKeys / totalKeys) * 100) : 100;
+            accuracyVal.innerText = `${accuracy}%`;
+            
+            keysVal.innerText = correctKeys;
+        }
+
+        // Input Keyboard handler
+        window.addEventListener('keydown', event => {
+            if (!isPlaying) return;
+
+            sound.init(); // Activate Audio Context
+
+            // Prevent system scrolling/actions for space and backspace
+            if (event.code === "Space") {
+                event.preventDefault();
+            }
+
+            const pressedKey = event.key;
+            const targetKey = activeWordObj.word[typedCharCount];
+
+            // Match comparison
+            if (pressedKey === targetKey) {
+                // Correct match
+                correctKeys++;
+                typedCharCount++;
+                sound.playKeyStroke();
+
+                // Check if word cleared
+                if (typedCharCount >= activeWordObj.word.length) {
+                    sound.playWordCleared();
+                    activeWordObj = getNextWord();
+                }
+
+                renderWord();
+            } else {
+                // Exclude meta keys like Shift, Control, etc.
+                if (event.key.length === 1) {
+                    missedKeys++;
+                    sound.playError();
+                }
+            }
+
+            calculateStats();
+        });
+
+        // Run Game timer loop
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                timeVal.innerText = `${timeLeft}s`;
+                
+                // Update progress bar width
+                const pct = (timeLeft / 60) * 100;
+                timerBar.style.width = `${pct}%`;
+
+                calculateStats();
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Start button triggering
+        function startGame() {
+            sound.init();
+            startOverlay.classList.add('hidden');
+            resultOverlay.classList.add('hidden');
+            keyTipContainer.style.visibility = "visible";
+
+            score = 0;
+            correctKeys = 0;
+            missedKeys = 0;
+            timeLeft = 60;
+            isPlaying = true;
+            timerBar.style.width = "100%";
+
+            wpmVal.innerText = "0";
+            accuracyVal.innerText = "100%";
+            keysVal.innerText = "0";
+            timeVal.innerText = "60s";
+
+            initQueue();
+            activeWordObj = getNextWord();
+            
+            renderWord();
+            startTimer();
+        }
+
+        // End state results computation
+        function endGame() {
+            clearInterval(timer);
+            isPlaying = false;
+            keyTipContainer.style.visibility = "hidden";
+            sound.playFanfare();
+
+            const elapsed = 60; // full 60s game
+            const wpm = Math.round((correctKeys / 5) / (elapsed / 60));
+            const total = correctKeys + missedKeys;
+            const accuracy = total > 0 ? Math.round((correctKeys / total) * 100) : 100;
+
+            // Evaluation Ranks
+            let rank = "C";
+            if (wpm >= 280 && accuracy >= 97) rank = "SSS";
+            else if (wpm >= 240 && accuracy >= 95) rank = "SS";
+            else if (wpm >= 200 && accuracy >= 90) rank = "S";
+            else if (wpm >= 160 && accuracy >= 85) rank = "A";
+            else if (wpm >= 110 && accuracy >= 80) rank = "B";
+
+            // Fill results
+            rankBanner.innerText = rank;
+            resultWpm.innerText = wpm;
+            resultAccuracy.innerText = `${accuracy}%`;
+            resultKeys.innerText = correctKeys;
+            resultMissed.innerText = missedKeys;
+
+            // Color adjustments based on rank
+            if (rank.startsWith("S")) {
+                rankBanner.style.color = "var(--neon-cyan)";
+                rankBanner.style.textShadow = "0 0 20px var(--neon-cyan)";
+            } else if (rank === "A" || rank === "B") {
+                rankBanner.style.color = "var(--neon-yellow)";
+                rankBanner.style.textShadow = "0 0 20px var(--neon-yellow)";
+            } else {
+                rankBanner.style.color = "var(--neon-pink)";
+                rankBanner.style.textShadow = "0 0 20px var(--neon-pink)";
+            }
+
+            resultOverlay.classList.remove('hidden');
+        }
+
+        // Bind events
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>
