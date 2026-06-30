@@ -261,3 +261,10 @@ $env:TERRAFORM_STATE_BUCKET="dummy"; $env:TERRAFORM_LOCK_TABLE="dummy"; npx cdkt
     GitHub リポジトリの **Settings > Secrets and variables > Actions** にて、作成された IAM ロール ARN を `ROLE_ARN_DEV` / `ROLE_ARN_STG` / `ROLE_ARN_PROD` として登録します。
 3.  **GitHub Actions のデプロイステップ復元**:
     [.github/workflows/deploy.yml](.github/workflows/deploy.yml) 内の、コメントアウトまたは削除された `Configure AWS credentials via OIDC` ステップ、ECRへのログイン・プッシュ、および `npx cdk deploy` コマンドを有効化します。
+
+---
+
+## 🔮 Platform Engineering (Backstage 連携)
+
+本プロジェクトは、Spotify製の開発者ポータル **Backstage** との統合を想定し、ルートディレクトリに [catalog-info.yaml](file:///c:/Git/learning-ts-concepts/catalog-info.yaml) を配置しています。
+開発者がポータル上から本ECS Fargate環境をプラットフォームカタログとして自動認識・一元管理できるメタデータを提供しています。
