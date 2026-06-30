@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ecs-fargate-infrastructure
+  description: Secure, 3-Tier AWS ECS Fargate Infrastructure managed by AWS CDK.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - aws
+    - ecs
+    - fargate
+    - cdk
+    - typescript
+    - datadog-instrumented
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-engineering-team
+  system: corporate-cloud-platform
