@@ -307,7 +307,7 @@ export class ThreeTierStack extends cdk.Stack {
       },
     });
 
-    const s3Origin = new cloudfront_origins.S3Origin(storage.assetBucket);
+    const s3Origin = cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(storage.assetBucket);
 
     const distribution = new cloudfront.Distribution(this, "CloudFrontDistribution", {
       defaultBehavior: {

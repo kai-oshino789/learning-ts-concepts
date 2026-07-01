@@ -406,3 +406,18 @@ Generated Terraform code for the stacks: datadog-monitoring-dev
 
 #### 2. [template.md (新規)](file:///c:/Git/learning-ts-concepts/docs/sre/reports/template.md)
 - 毎月の SLO 実績値やエラーバジェット消費イベントの分析、および次月のアクションプランを Docs as Code で記述して Git 履歴に蓄積するための月次報告書テンプレートを作成しました。
+
+---
+
+## 20. CDK非推奨警告の解消およびセキュリティグループのポート整合性修正
+
+### 変更内容
+
+#### 1. [stack.ts (CDKインフラ定義)](file:///c:/Git/learning-ts-concepts/infra/lib/stack.ts)
+- `S3Origin` が非推奨警告を出していたため、推奨される `S3BucketOrigin.withOriginAccessIdentity` に置き換え。OACによるバインド（L1プロパティオーバーライド）はそのまま維持し、非推奨警告を解消。
+
+#### 2. [network.ts (ネットワーク定義)](file:///c:/Git/learning-ts-concepts/infra/lib/constructs/network.ts)
+- `ecsSecurityGroup` の ingress ルールに不要かつコンテナ実行ポート（`8080`）と不整合を起こしていたポート `80` の許可が残っていたため、実際のコンテナポート `8080` へ修正。最小権限（Security by Design）の適用。
+
+### 動作確認
+- `npm test` によるユニットテストがすべて正常にパス（PASS）することを確認。

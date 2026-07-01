@@ -110,10 +110,10 @@ export class VpcConstruct extends Construct {
       description: "Security group for ECS tasks",
     });
 
-    // ALB → ECS の通信を許可 (ポート 80 を想定)
+    // ALB → ECS の通信を許可 (ポート 8080 を想定)
     this.ecsSecurityGroup.addIngressRule(
       this.albSecurityGroup,
-      ec2.Port.tcp(80),
+      ec2.Port.tcp(8080),
       "Allow inbound from ALB"
     );
 
