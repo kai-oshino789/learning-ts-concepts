@@ -55,3 +55,11 @@
   - Windows 環境で `cdktf-cli` の依存モジュールをインストールする際、`node-pty` のビルドが失敗しインストールが中断することがある。
   - この現象を回避するため、Windows 環境でローカルインストールする際は、インストールスクリプトを無視するフラグを付与すること：
     * コマンド: `npm install --ignore-scripts`
+
+---
+
+## 4. AI エージェント（Antigravity）に対する外部スコープ書き込み制限
+
+- **他リポジトリへの書き込み・変更コマンドの禁止 (No Write/Modifying Operations on Outer Repositories)**:
+  - Antigravity は、`c:\Git\learning-ts-concepts` 以外のリポジトリやディレクトリ（`aws-landing-zone` や `learning-terraform-concepts` 等）のファイルに対して、新規作成・上書き・編集・削除を一切行ってはならず、読み取り専用（Read-Only）として振る舞うこと。
+  - `learning-ts-concepts` 以外のディレクトリ内におけるファイル更新（`write_to_file` / `replace_file_content` などの実行）およびコマンド実行は、ポリシー違反であり、厳格に禁止する。
